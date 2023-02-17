@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
         import reactor.core.publisher.Mono;
 
 @RestController
-public class ExternalAPIController {
+public class WebFluxExternalAPIController {
 
     private final WebClient webClient;
 
