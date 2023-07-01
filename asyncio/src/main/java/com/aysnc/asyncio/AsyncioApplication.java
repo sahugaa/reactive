@@ -3,12 +3,13 @@ package com.aysnc.asyncio;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(name = "AsyncioApplication")
 @EnableAsync
 public class AsyncioApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(AsyncioApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AsyncioApplication.class, args);
+    }
 
+    // Additional methods and functionality can be added here
 }
