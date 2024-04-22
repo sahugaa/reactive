@@ -1,0 +1,62 @@
+import org.apache.http.impl.conn.DefaultRoutePlanner;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.HttpHost;
+
+@Configuration
+public class HttpClientConfig {
+
+    @Bean
+    public CloseableHttpClient httpClient() {
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+
+        HttpRoutePlanner routePlanner = new DefaultRoutePlanner(new SchemePortResolver() {
+            @Override
+            public int resolve(HttpHost host) throws UnsupportedSchemeException {
+                if ("https".equalsIgnoreCase(host.getSchemeName())) {
+                    return 443; // Default HTTPS port
+                } else {
+                    return 80; // Default HTTP port
+                }
+            }
+        });
+
+        return HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setRoutePlanner(routePlanner)
+                .build();
+    }
+}
+
+
+
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@Configuration
+public class WebClientConfig {
+
+    private final HttpClient httpClient;
+
+    public WebClientConfig(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
+
+    @Bean
+    public WebClient webClient() {
+        ClientHttpConnector connector = new ReactorClientHttpConnector(
+            options -> options.httpConnector(new JettyClientHttpConnector(httpClient))
+        );
+
+        return WebClient.builder()
+                .clientConnector(connector)
+                .build();
+    }
+}
