@@ -1,0 +1,10 @@
+boolean isReady = false;
+while (!isReady) {
+    V1Deployment readDeployment = api.readNamespacedDeployment("database-deployment", "default", null, null, null);
+    if (readDeployment.getStatus().getReadyReplicas() != null &&
+        readDeployment.getStatus().getReadyReplicas() > 0) {
+        isReady = true;
+    } else {
+        Thread.sleep(10000); // Wait for 10 seconds before retrying
+    }
+}
