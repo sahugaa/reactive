@@ -1,0 +1,223 @@
+
+Traning Data --- 
+
+
+| TPS (Transactions per Second) | Latency (ms) | Userbase Size | Network Bandwidth (Mbps) | Peak Time (hours) | Message Size (KB) | Resilience Score | Regulatory Compliance Score | Error Rate (%) | Throughput (req/s) | Concurrency | Availability (%) | Scalability Score | Cost Efficiency Score | Security Score | Data Consistency Score | Response Time Distribution | Resource Utilization (%) | Disk I/O (MB/s) | Network Latency (ms) | Application Load | Database Throughput | Database Latency (ms) | Database Connections | Database Size (TB) | Database Replication Lag (s) | Cache Hit Ratio (%) | Cache Eviction Rate (%) | Cache Efficiency Score | Cache Warm-up Time (s) | Cache Size (GB) | Search Query Throughput | Search Latency (ms) | Indexing Speed | Search Relevance Score | Search Index Size (GB) | Search Availability (%) |
+|-------------------------------|--------------|---------------|--------------------------|-------------------|-------------------|------------------|-----------------------------|-----------------|--------------------|-------------|------------------|-------------------|------------------------|----------------|------------------------|---------------------------|--------------------------|-----------------|----------------------|-----------------|---------------------|----------------------|----------------------|---------------------|-----------------------------|-----------------------|------------------------|----------------------|-------------------|-----------------------|---------------------|-------------------|------------------------|----------------------|------------------------|
+| 1000                          | 50           | 10000         | 1000                     | 12                | 100               | 0.8              | 0.9                         | 0.5             | 1200               | 500         | 99.5             | 0.7                 | 0.8                    | 0.85           | 0.88                   | [0.1, 0.2, 0.3, 0.4, 0.5]  | [70, 60, 80, 75, 65]    | 50              | 10                   | 0.75            | 1500                | 40                    | 200                  | 5                 | 2.5                         | 90                    | 10                       | 0.85                   | 300                   | 100               | 500                   | 20                  | 5              | 0.9                   | 10                    | 95                        |
+| 2000                          | 40           | 200000        | 2000                     | 10                | 150               | 0.7              | 0.85                        | 0.4             | 1800               | 600         | 99.8             | 0.75                | 0.85                   | 0.9            | 0.92                   | [0.2, 0.3, 0.4, 0.5, 0.6]  | [80, 70, 90, 85, 75]    | 60              | 8                    | 0.85            | 1800                | 35                    | 250                  | 6                 | 3.0                         | 92                    | 8                        | 0.88                   | 250                   | 120               | 600                   | 15                  | 6              | 0.92                  | 12                    | 96                        |
+| 1500                          | 45           | 500000        | 1500                     | 14                | 120               | 0.75             | 0.88                        | 0.3             | 1500               | 550         | 99.6             | 0.65                | 0.78                   | 0.87           | 0.91                   | [0.1, 0.2, 0.3, 0.4, 0.5]  | [75, 65, 85, 80, 70]    | 55              | 12                   | 0.65            | 2200                | 42                    | 180                  | 7                 | 2.0                         | 88                    | 12                       | 0.82                   | 350                   | 150               | 700                   | 18                  | 7              | 0.85                  | 15                    | 94                        |
+| 2500                          | 35           | 1000000       | 2500                     | 11                | 200               | 0.65             | 0.92                        | 0.6             | 2200               | 700         | 99.9             | 0.8                 | 0.88                   | 0.95           | 0.94                   | [0.3, 0.4, 0.5, 0.6, 0.7]  | [85, 75, 95, 90, 80]    | 70              | 15                   | 0.80            | 2000                | 30                    | 300                  | 8                 | 1.5                         | 95                    | 6                        | 0.90                   | 400                   | 200               | 800                   | 22                  | 8              | 0.88                  | 18                    | 97                        |
+| 1200                          | 55           | 2000000       | 1800                     | 13                | 130               | 0.78             | 0.86                        | 0.35            | 1600               | 530         | 99.7             | 0.72                | 0.82                   | 0.89           | 0.90                   | [0.2, 0.3, 0.4, 0.5, 0.6]  | [78, 68, 88, 83, 73]    | 58              | 11                   | 0.70            | 2400                | 50                    | 280                  | 9                 | 2.2                         | 86                    | 14                       | 0.80                   | 320                   | 180               | 900                   | 25                  | 9              | 0.86                  | 20                    | 95                        |
+| 1800                          | 42           | 3000000       | 2200                     | 9                 | 170               | 0.72             | 0.83                        | 0.45            | 1900               | 620         | 99.6             | 0.68                | 0.80                   | 0.92           | 0.93                   | [0.3, 0.4, 0.5, 0.6, 0.7]  | [82, 72, 92, 87, 77]    | 63              | 9                    | 0.78            | 2600                | 48                    | 320                  | 10                | 1.8                         | 90                    | 10                       | 0.88                   | 450                   | 220               | 1000                  | 28                  | 10             | 0.90                  | 25                    | 98                        |
+| 1350                          | 48           | 4000000       | 1650                     | 15                | 110               | 0.77             | 0.89                        | 0.38            | 1400               | 570         | 99.8             | 0.73                | 0.79                   | 0.86           | 0.89                   | [0.2, 0.3, 0.4, 0.5, 0.6]  | [76, 66, 86, 81, 71]    | 52              | 14                   | 0.72            | 2800                | 55                    | 350                  | 11                | 2.5                         | 85                    | 16                       | 0.85                   | 500                   | 240               | 1100                  | 30                  | 11             | 0.82                  | 30                    | 99                        |
+| 2800                          | 38           | 5000000       | 2800                     | 8                 | 180               | 0.68             | 0.94                        | 0.55            | 2300               | 720         | 99.9             | 0.85                | 0.90                   | 0.97           | 0.98                   | [0.4, 0.5, 0.6, 0.7, 0.8]  | [88, 78, 98, 93, 83]    | 75              | 13                   | 0.85            | 3200                | 60                    | 400                  | 12                | 3.0                         | 92                    | 18                       | 0.90                   | 600                   | 280               | 1200                  | 35                  | 12             | 0.88                  | 35                    | 99                        |
+
+
+
+--- Input 
+
+Input file provides detailed configuration parameters for an ETL (Extract, Transform, Load) system, tailored to handle the processing of 5 million records daily, with an ETL cycle occurring every 3 hours. 
+
+
+{
+  "TPS": { "min": 50, "max": 100 },  // Adjusted for the three-hour interval
+  "Latency": { "min": 50, "max": 70 },   // Adjusted for the three-hour interval
+  "Network Bandwidth": { "min": 200, "max": 300 },  // Adjusted for the three-hour interval
+  "Peak Time": { "min": 9, "max": 11 },  // Peak Time (ideal range: 9 - 11 hours)
+  "Message Size": { "min": 0.8, "max": 1.2 },  // Adjusted for the three-hour interval
+  "Resilience Score": { "min": 0.8, "max": 0.9 },  // Resilience Score (ideal range: 0.8 - 0.9)
+  "Error Rate (%)": { "min": 0.1, "max": 0.3 },  // Error Rate (%) (ideal range: 0.1 - 0.3)
+  "Throughput": { "min": 500000, "max": 800000 },  // Adjusted for the three-hour interval
+  "Concurrency": { "min": 500, "max": 700 },  // Concurrency (ideal range: 500 - 700)
+  "Availability (%)": { "min": 99.7, "max": 99.9 },  // Availability (%) (ideal range: 99.7 - 99.9)
+  "Database Throughput": { "min": 2500, "max": 2800 },  // Database Throughput (ideal range: 2500 - 2800 req/s)
+  "Database Latency (ms)": { "min": 25, "max": 35 },  // Database Latency (ms) (ideal range: 25 - 35 ms)
+  "Database Connections": { "min": 250, "max": 350 },  // Database Connections (ideal range: 250 - 350)
+  "Database Size (TB)": { "min": 4.5, "max": 5.5 },  // Database Size (TB) (ideal range: 4.5 - 5.5 TB)
+  "Database Replication Lag (s)": { "min": 1.5, "max": 2.5 },  // Database Replication Lag (s) (ideal range: 1.5 - 2.5 s)
+
+  // Optional Parameters for Processing System
+  "Scalability Score": { "min": 0.8, "max": 0.9 },  // Scalability Score (ideal range: 0.8 - 0.9)
+  "Cost Efficiency Score": { "min": 0.85, "max": 0.95 },  // Cost Efficiency Score (ideal range: 0.85 - 0.95)
+  "Security Score": { "min": 0.9, "max": 0.95 },  // Security Score (ideal range: 0.9 - 0.95)
+  "Data Consistency Score": { "min": [0.4, 0.5], "max": [0.7, 0.8] },  // Data Consistency Score (ideal range: [0.4 - 0.7, 0.5 - 0.8])
+  "Response Time Distribution": { "min": [75, 65], "max": [85, 75] },  // Response Time Distribution (ideal range: [75 - 85, 65 - 75])
+  "Resource Utilization (%)": { "min": [55, 45], "max": [65, 55] },  // Resource Utilization (%) (ideal range: [55 - 65, 45 - 55])
+  "Disk I/O (MB/s)": { "min": 45, "max": 55 },  // Disk I/O (MB/s) (ideal range: 45 - 55 MB/s)
+  "Network Latency (ms)": { "min": 7, "max": 12 },  // Network Latency (ms) (ideal range: 7 - 12 ms)
+  "Application Load": { "min": 0.8, "max": 0.9 }  // Application Load (ideal range: 0.8 - 0.9)
+}
+
+
+Output ---
+
+ETL_System_Recommendation:
+  Compute_and_Network_Resources:
+    - Compute_Instance_Type: "c5.large"  # Utilizes the c5.large EC2 instance type, offering a balance of CPU and memory resources suitable for ETL processing.
+      CPU_Cores: 2  # Specifies 2 CPU cores for the c5.large instance type, providing sufficient processing power for handling ETL workloads.
+      Memory_GiB: 4  # Allocates 4 GiB of memory for the instance, ensuring efficient data processing and caching.
+      Network_Performance: "Enhanced Networking Enabled"  # Enables enhanced networking for optimized network performance, reducing latency and improving data transfer speeds.
+    - Database_Service: "Amazon RDS or Amazon Aurora"  # Recommends using managed database services like Amazon RDS or Amazon Aurora for reliability, scalability, and automated backups.
+      Database_Instance_Type: "db.r5.large"  # Selects the db.r5.large instance type for the database, providing sufficient memory and CPU resources for efficient data processing.
+      CPU_Cores: 2  # Specifies 2 CPU cores for the db.r5.large instance type, suitable for handling database queries and transactions.
+      Memory_GiB: 16  # Allocates 16 GiB of memory for the database instance, ensuring efficient data storage and retrieval.
+      Storage_Configuration: "Provisioned IOPS SSD"  # Chooses provisioned IOPS SSD storage for high-performance database workloads, ensuring consistent and predictable I/O performance.
+
+  Optional_Parameters:
+    - Scalability: "AWS Auto Scaling"  # Implements AWS Auto Scaling to dynamically adjust the number of EC2 instances based on traffic patterns, ensuring optimal resource utilization and high availability.
+    - Cost_Efficiency: "EC2 Reserved Instances or AWS Savings Plans"  # Recommends purchasing EC2 Reserved Instances or leveraging AWS Savings Plans to reduce costs and optimize budget allocation for long-term usage.
+    - Security: "AWS IAM, Encryption at Rest, Network Security Groups"  # Enhances security with AWS IAM for fine-grained access control, encryption at rest for data protection, and network security groups to control inbound and outbound traffic.
+    - Data_Consistency: "Database Replication, Backup Strategies"  # Ensures data consistency and durability with database replication across multiple Availability Zones and implementing backup strategies for disaster recovery.
+    - Resource_Utilization: "AWS CloudWatch, AWS Trusted Advisor"  # Monitors resource utilization and performance metrics with AWS CloudWatch, enabling proactive scaling and optimization, supplemented by AWS Trusted Advisor recommendations for cost optimization and operational excellence.
+    - Disk_IO: "Amazon EBS Volumes with Provisioned IOPS"  # Utilizes Amazon EBS volumes with provisioned IOPS for consistent disk performance, suitable for database workloads with high I/O demands.
+    - Network_Latency: "AWS Direct Connect"  # Reduces network latency and ensures reliable connectivity with AWS Direct Connect, establishing a dedicated network connection between the on-premises environment and AWS.
+    - Application_Load: "Elastic Load Balancing (ELB), Horizontal Scaling"  # Distributes incoming traffic evenly across multiple EC2 instances using Elastic Load Balancing (ELB) and implements horizontal scaling to handle increased application load, ensuring scalability and fault tolerance.
+
+# Trade-offs:
+# - Using managed services like Amazon RDS or Amazon Aurora simplifies database management but may incur higher costs compared to self-managed database deployments.
+# - AWS Auto Scaling provides flexibility and cost savings by adjusting resource capacity based on demand, but it requires careful configuration to avoid over-provisioning or under-provisioning of resources.
+# - EC2 Reserved Instances offer significant cost savings for predictable workloads but may result in underutilized resources if workload patterns change frequently.
+# - Enhanced networking may improve network performance but could incur additional costs and complexity in configuration and management.
+# - Utilizing AWS Direct Connect enhances network latency and reliability but requires upfront investment in networking infrastructure and ongoing maintenance.
+# - Implementing encryption at rest adds security but may introduce overhead in terms of performance and management complexity.
+# - Elastic Load Balancing (ELB) improves application availability and fault tolerance but may introduce additional latency in routing requests to backend instances.
+
+
+--- Architecture diagram for simulation
+You can then use this YAML description as input to a tool like PlantUML or AWS Diagrams to automatically generate a visual representation of your architecture. T
+
+ETL_System_Diagram:
+  title: "ETL System Architecture"
+  description: "Diagram illustrating the recommended architecture for the ETL system based on the provided recommendations."
+  components:
+    - name: "Compute Instance"
+      type: "EC2 Instance"
+      description: "c5.large EC2 instance type for processing ETL workloads."
+      properties:
+        - "Instance Type: c5.large"
+        - "CPU Cores: 2"
+        - "Memory: 4 GiB"
+        - "Network Performance: Enhanced Networking Enabled"
+    - name: "Database"
+      type: "Amazon RDS"
+      description: "Managed database service for storing ETL data."
+      properties:
+        - "Instance Type: db.r5.large"
+        - "CPU Cores: 2"
+        - "Memory: 16 GiB"
+        - "Storage Configuration: Provisioned IOPS SSD"
+    - name: "Optional Components"
+      type: "Various AWS Services"
+      description: "Optional components for scalability, cost efficiency, security, etc."
+      properties:
+        - "Scalability: AWS Auto Scaling"
+        - "Cost Efficiency: EC2 Reserved Instances or AWS Savings Plans"
+        - "Security: AWS IAM, Encryption at Rest, Network Security Groups"
+        - "Data Consistency: Database Replication, Backup Strategies"
+        - "Resource Utilization: AWS CloudWatch, AWS Trusted Advisor"
+        - "Disk I/O: Amazon EBS Volumes with Provisioned IOPS"
+        - "Network Latency: AWS Direct Connect"
+        - "Application Load: Elastic Load Balancing (ELB), Horizontal Scaling"
+  relationships:
+    - type: "Connects to"
+      source: "Compute Instance"
+      target: "Database"
+      description: "Connects the compute instance to the database for data processing and storage."
+
+
+--- Terraform Script 
+
+# Define provider configuration
+provider "aws" {
+  region = "us-east-1"  # Update with your desired AWS region
+}
+
+# Define EC2 instance resource for compute
+resource "aws_instance" "compute_instance" {
+  ami                    = "ami-0c55b159cbfafe1f0"  # Update with your desired AMI ID
+  instance_type          = "c5.large"
+  subnet_id              = "subnet-12345678"  # Update with your desired subnet ID
+  security_group_ids     = ["sg-12345678"]  # Update with your desired security group ID(s)
+
+  tags = {
+    Name = "ETL_Compute_Instance"
+  }
+}
+
+# Define RDS instance resource for database
+resource "aws_db_instance" "database_instance" {
+  engine                 = "aurora-postgresql"  # Update with your desired database engine
+  instance_class         = "db.r5.large"
+  subnet_group_name      = "my_db_subnet_group"  # Update with your desired DB subnet group
+  allocated_storage      = 100  # Update with your desired allocated storage in GB
+  max_allocated_storage  = 500  # Update with your desired max allocated storage in GB
+
+  tags = {
+    Name = "ETL_Database_Instance"
+  }
+}
+
+# Define AWS Auto Scaling group
+resource "aws_autoscaling_group" "auto_scaling_group" {
+  name                    = "ETL_Auto_Scaling_Group"
+  launch_configuration   = aws_launch_configuration.launch_config.name
+  min_size                = 2
+  max_size                = 5
+  desired_capacity        = 3
+  vpc_zone_identifier     = ["subnet-12345678"]  # Update with your desired subnet ID(s)
+
+  tag {
+    key                 = "Name"
+    value               = "ETL_Auto_Scaling_Group"
+    propagate_at_launch = true
+  }
+}
+
+# Define AWS Launch Configuration for Auto Scaling
+resource "aws_launch_configuration" "launch_config" {
+  name_prefix             = "ETL_Launch_Config"
+  image_id                = "ami-0c55b159cbfafe1f0"  # Update with your desired AMI ID
+  instance_type           = "t3.medium"
+  security_groups         = ["sg-12345678"]  # Update with your desired security group ID(s)
+  key_name                = "my_key_pair"  # Update with your desired SSH key pair name
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+
+---- Load file 
+
+This YAML file describes various types of workloads (data ingestion, transformation, loading) and provides instructions on how to simulate each workload. You can then use this load file along with appropriate testing tools (e.g., Apache JMeter, Gatling) to generate load and test your ETL system's performance and scalability.
+
+Load_Test_File:
+  title: "Load Test File for ETL System"
+  description: "YAML file containing instructions to simulate workload for testing the ETL system."
+  workload:
+    - name: "Data Ingestion"
+      description: "Simulates data ingestion workload."
+      steps:
+        - step: "Generate sample data"
+          description: "Generate sample data files to be ingested."
+          instructions: "Use a data generation tool to create sample data files."
+        - step: "Ingest data"
+          description: "Ingest the sample data into the ETL system."
+          instructions: "Execute ingestion scripts or APIs to upload the sample data files."
+    - name: "Data Transformation"
+      description: "Simulates data transformation workload."
+      steps:
+        - step: "Execute transformation jobs"
+          description: "Execute data transformation jobs on the ingested data."
+          instructions: "Run ETL jobs or scripts to transform the ingested data."
+    - name: "Data Loading"
+      description: "Simulates data loading workload."
+      steps:
+        - step: "Load data into target"
+          description: "Load the transformed data into the target database or data warehouse."
+          instructions: "Execute loading scripts or APIs to insert the transformed data into the target database."
+
+
+
+
