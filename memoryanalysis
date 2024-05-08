@@ -1,3 +1,6 @@
+
+Teams heavily rely on costly commercial tools that utilize the extended Berkeley Packet Filter (eBPF) to monitor container activities, including detecting unusual behaviors such as unexpected processes and anomalous network traffic. This dependency not only results in high operational costs but also enforces vendor lock-in, limiting flexibility. Furthermore, the opaque nature of these tools restricts transparency, complicating security audits and the customization needed to address specific threats effectively.
+
 Overview
 This Confluence page serves as the central repository for all documentation, discussions, and updates related to our project on volatile memory analysis for cloud container nodes. Our aim is to utilize open-source tools such as AVML, dwarf2json, and Volatility 3 to provide an alternative to commercial solutions, enhancing transparency, reducing costs, and increasing flexibility.
 
