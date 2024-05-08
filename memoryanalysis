@@ -2,6 +2,8 @@ title
 Volatile Memory Forensics for Containerized Environments
 Open-Source Insights: Volatile Memory Forensics for Containers
 
+Learning to use AVML, dwarf2json, and Volatility 3 enhances skills in security and systems analysis, boosts career prospects, and improves problem-solving capabilities in IT environments.
+
 
 description
 Many commercial solutions use eBPF to access the kernel. Our project enhances volatile memory analysis for cloud containers using open-source tools AVML, dwarf2json, and Volatility 3. We capture and analyze memory, detect anomalies, and ensure security, improving real-time monitoring and proactive security measures across any cloud environment, optimizing both operational integrity and performance.
@@ -18,8 +20,7 @@ Introduction
 "In the cloud-first world, understanding and securing container operations is critical. Yet, most organizations face challenges with the proprietary tools available—high costs, lack of flexibility, and opaque operations which may not always align with our security needs."
 
 Problem Statement
-"Currently, teams often rely on commercial solutions for monitoring container activities, which not only incurs significant costs but also restricts operational flexibility due to vendor lock-in. Moreover, the lack of transparency in these commercial tools complicates security audits and customization."
-
+Many commercial solutions today leverage the extended Berkeley Packet Filter (eBPF) and its sandbox approach to access the kernel, necessitating purchases of proprietary tools or the development of custom solutions built on eBPF. This reliance leads to significant costs and restricts operational flexibility due to vendor lock-in. Additionally, the lack of transparency in these tools complicates security audits and customization, limiting the ability to tailor systems to specific security needs."
 Solution
 "We propose an open-source approach using AVML, dwarf2json, and Volatility 3. This trio offers a robust alternative for real-time memory analysis of cloud container nodes, enhancing security and operational efficiency."
 
