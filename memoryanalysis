@@ -1,4 +1,15 @@
 
+
+Malicious Processes: Detection of processes that are known to be malicious or that behave in ways typical of malware, such as hiding their presence or spying on other processes.
+Unusual or Hidden Processes: Identification of processes that are not typically part of the system's operations or that have been deliberately hidden from the operating system to evade detection.
+Network Connections: Analysis of active network connections and sockets that may reveal unauthorized external connections or data exfiltration attempts.
+Rootkits and Stealth Malware: Discovery of signs of rootkits or other types of stealth malware that reside entirely in memory and are designed to manipulate running operating system functions while avoiding traditional disk-based detection.
+Injection Artifacts: Detection of code injection in process memory spaces, a common technique used by malware to execute malicious code within the context of legitimate processes.
+Anomaly in Login Sessions: Identification of anomaly sessions, such as remote logins at unusual hours, which could suggest unauthorized access.
+Registry Keys and CLI Commands: Retrieval of recent command-line inputs and temporary registry modifications that may be indicators of command control activities or system configuration tampering
+
+
+
 Teams heavily rely on costly commercial tools that utilize the extended Berkeley Packet Filter (eBPF) to monitor container activities, including detecting unusual behaviors such as unexpected processes and anomalous network traffic. This dependency not only results in high operational costs but also enforces vendor lock-in, limiting flexibility. Furthermore, the opaque nature of these tools restricts transparency, complicating security audits and the customization needed to address specific threats effectively.
 Suspicious activity in the context of system and network security typically refers to actions or behaviors that could indicate a security threat or breach. When monitoring cloud container nodes, suspicious activity can manifest in various ways, depending on the nature of the threat. Here are some common types of suspicious activities that might be detected through volatile memory analysis and other monitoring techniques:
 
