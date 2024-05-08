@@ -4,6 +4,7 @@ Open-Source Insights: Volatile Memory Forensics for Containers
 
 
 description
+Many commercial solutions use eBPF to access the kernel. Our project enhances volatile memory analysis for cloud containers using open-source tools AVML, dwarf2json, and Volatility 3. We capture and analyze memory, detect anomalies, and ensure security, improving real-time monitoring and proactive security measures across any cloud environment, optimizing both operational integrity and performance.
 Explore advanced volatile memory analysis for cloud container nodes using open-source tools. Our project leverages AVML, dwarf2json, and Volatility 3 to capture and analyze memory, detecting anomalies and ensuring security. This approach enhances real-time monitoring, offers insights into container behavior, and supports proactive security measures across any cloud environment, contributing significantly to both operational integrity and performance optimization.
 
 benefits
