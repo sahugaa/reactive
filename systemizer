@@ -9,6 +9,11 @@ Recommendation File: A detailed document outlining optimal infrastructure setups
 Architecture File: A blueprint of the recommended infrastructure architecture.
 EAC & Terraform Scripts: Scripts for provisioning the infrastructure reliably and consistently.
 Load Testing Script: To validate performance under various scenarios.
+
+
+With Systemizer, we're not just upgrading; we're reshaping how we approach capacity planning. It's our solution to the challenges of overengineering, underengineering, and managing cloud costs right from the start. By empowering developers to take the lead and streamlining the review process, we're slashing design time and getting it right the first time. Plus, with Systemizer's automated simulations and load testing, we're eliminating errors and saving both time and money.
+
+
 Benefits:
 
 Efficiency and Cost Savings: Streamlines the capacity planning process, drastically reducing both time and financial overhead.
