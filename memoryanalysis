@@ -1,35 +1,29 @@
-title
-Volatile Memory Forensics for Containerized Environments
-Open-Source Insights: Volatile Memory Forensics for Containers
+Title: Open-Source Memory Forensics for Containerized Environments
 
-Learning to use AVML, dwarf2json, and Volatility 3 enhances skills in security and systems analysis, boosts career prospects, and improves problem-solving capabilities in IT environments.
-
-
-description
-Many commercial solutions use eBPF to access the kernel. Our project enhances volatile memory analysis for cloud containers using open-source tools AVML, dwarf2json, and Volatility 3. We capture and analyze memory, detect anomalies, and ensure security, improving real-time monitoring and proactive security measures across any cloud environment, optimizing both operational integrity and performance.
-Explore advanced volatile memory analysis for cloud container nodes using open-source tools. Our project leverages AVML, dwarf2json, and Volatility 3 to capture and analyze memory, detecting anomalies and ensuring security. This approach enhances real-time monitoring, offers insights into container behavior, and supports proactive security measures across any cloud environment, contributing significantly to both operational integrity and performance optimization.
-
-benefits
-Open-source tools like AVML, dwarf2json, and Volatility 3 offer enhanced cloud container security with full transparency, allowing for in-depth code audits and customizations to suit specific organizational needs. These tools support rapid threat adaptation through community-driven updates and avoid vendor lock-in, providing significant cost savings. They foster organizational agility and improve security posture by seamlessly integrating with existing systems, enabling a more responsive and proactive security strategy.
-
-Skills
-Essential skills include cloud computing with a focus on Kubernetes and Docker, proficiency in Linux/Unix, and scripting in Python or Bash. Understanding of container orchestration, basic network security, and cloud-native architectures is crucial. Experience with memory analysis tools like AVML, dwarf2json, and Volatility 3 is highly beneficial.
-
-Pitch
-Introduction
-"In the cloud-first world, understanding and securing container operations is critical. Yet, most organizations face challenges with the proprietary tools available—high costs, lack of flexibility, and opaque operations which may not always align with our security needs."
+Overview
+This Confluence page serves as the central repository for all documentation, discussions, and updates related to our project on volatile memory analysis for cloud container nodes. Our aim is to utilize open-source tools such as AVML, dwarf2json, and Volatility 3 to provide an alternative to commercial solutions, enhancing transparency, reducing costs, and increasing flexibility.
 
 Problem Statement
-Many commercial solutions today leverage the extended Berkeley Packet Filter (eBPF) and its sandbox approach to access the kernel, necessitating purchases of proprietary tools or the development of custom solutions built on eBPF. This reliance leads to significant costs and restricts operational flexibility due to vendor lock-in. Additionally, the lack of transparency in these tools complicates security audits and customization, limiting the ability to tailor systems to specific security needs."
-Solution
-"We propose an open-source approach using AVML, dwarf2json, and Volatility 3. This trio offers a robust alternative for real-time memory analysis of cloud container nodes, enhancing security and operational efficiency."
+Teams currently rely on expensive commercial tools leveraging the extended Berkeley Packet Filter (eBPF) to monitor container activities. This approach incurs high costs, promotes vendor lock-in, and lacks transparency, hindering effective security audits and system customization.
 
-How It Works
-"First, we use AVML to capture a snapshot of the kernel memory from cloud container nodes. Next, dwarf2json helps us translate this data into a format that Volatility 3 can analyze, providing insights into running processes and potential security threats. This process ensures that we can monitor our containers comprehensively without relying on external vendors."
+Proposed Solution
+Our project proposes using a combination of AVML, dwarf2json, and Volatility 3 to capture and analyze the volatile memory of cloud container nodes. This method will allow for real-time monitoring and detailed insight into container behavior, providing a robust alternative to commercial software.
 
-Benefits
-"This method significantly reduces costs by eliminating expensive license fees. It increases our agility, allowing us to customize and scale our security measures as needed. Furthermore, the community-driven nature of these tools means faster updates and collective cybersecurity intelligence."
-
-Conclusion
-"By adopting this open-source strategy, not only can we enhance our security posture but also foster innovation within our teams. It empowers our developers by involving them directly in the security process, turning every challenge into an opportunity for learning and growth. Let’s lead the way in building a more secure, transparent, and cost-effective cloud environment."
-
+Goals and Objectives
+Reduce Dependency on Commercial Tools: Minimize reliance on costly commercial solutions by adopting open-source alternatives.
+Enhance Security and Transparency: Improve security audits and system transparency through accessible and modifiable open-source tools.
+Foster Innovation and Flexibility: Encourage innovation with flexible, adaptable solutions that can be tailored to specific organizational needs.
+Implementation Steps
+Environment Setup: Establish a test environment in our cloud infrastructure for safe experimentation.
+Tool Integration: Integrate AVML, dwarf2json, and Volatility 3 to capture and analyze memory data.
+Testing and Validation: Conduct thorough testing to ensure the tools provide accurate and valuable insights.
+Documentation and Training: Document the entire process and train relevant teams on how to use the new tools effectively.
+Expected Outcomes
+Cost Reduction: Significant reduction in monitoring and security-related expenditures.
+Improved Operational Efficiency: Faster, more flexible responses to security incidents and system anomalies.
+Increased Security Posture: Enhanced ability to detect and respond to threats through detailed memory analysis.
+Resources
+[Link to AVML repository]
+[Link to dwarf2json documentation]
+[Link to Volatility 3 usage guidelines]
+[Internal training sessions schedule]
