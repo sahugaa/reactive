@@ -27,6 +27,21 @@ Enter Systemizer, JPMC's solution to these multifaceted challenges. By automatin
 
 Systemizer is designed to navigate these challenges, optimizing infrastructure planning from the ground up.
 
+
+How it works
+Here's how it works:
+
+Data Analysis and Modeling: Our system ingests vast amounts of data and trains models, particularly Gradient Boosting Machines (GBM), on critical metrics such as Transactions per Second (TPS), latency, and network bandwidth. Utilizing machine learning algorithms, it analyzes this data to identify patterns, trends, and optimal configurations.
+User Input and Preference: Stakeholders input their preferences and requirements through a user-friendly JSON interface. These preferences include desired performance levels, scalability needs, cost constraints, and regulatory compliance considerations.
+Algorithmic Processing: The system processes the user input alongside the analyzed data, leveraging sophisticated algorithms to generate personalized recommendations. These recommendations encompass infrastructure architectures, resource allocations, and service configurations.
+File Generation:
+Recommendation File: The system compiles the recommendations into a comprehensive document, detailing optimal infrastructure setups and associated strategies.
+Architecture File: It then translates these recommendations into a detailed blueprint of the recommended infrastructure architecture.
+EAC & Terraform Scripts: Automated scripts are generated to provision the recommended infrastructure using EAC and Terraform, ensuring consistency and reliability.
+Load Testing Script: Additionally, a load testing script is created to validate the recommended infrastructure's performance under various workload scenarios.
+
+Features
+
 Step 1: Precision Planning for Optimal Resource Allocation:
 In our industry, we often grapple with the balance between over-cautious provisioning and underestimations, leading to resource imbalances. Systemizer tackles this head-on by offering data-driven recommendations tailored precisely to your application's needs. By doing so, it not only prevents costly over-engineering but also mitigates the risk of under-provisioning.
 
