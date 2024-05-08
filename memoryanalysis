@@ -1,5 +1,17 @@
 
 Teams heavily rely on costly commercial tools that utilize the extended Berkeley Packet Filter (eBPF) to monitor container activities, including detecting unusual behaviors such as unexpected processes and anomalous network traffic. This dependency not only results in high operational costs but also enforces vendor lock-in, limiting flexibility. Furthermore, the opaque nature of these tools restricts transparency, complicating security audits and the customization needed to address specific threats effectively.
+Suspicious activity in the context of system and network security typically refers to actions or behaviors that could indicate a security threat or breach. When monitoring cloud container nodes, suspicious activity can manifest in various ways, depending on the nature of the threat. Here are some common types of suspicious activities that might be detected through volatile memory analysis and other monitoring techniques:
+
+Unexpected Processes: Processes running on a node that are not part of the standard operating environment or that have been flagged as potentially malicious.
+Unusual Network Traffic: Excessive or abnormal network requests, especially to known bad destinations or in unusual volumes, which could indicate data exfiltration or command and control communication.
+Unauthorized Access Attempts: Repeated failed attempts to access the system or certain data, which could suggest a brute force attack.
+Resource Anomalies: Significant, unexplained changes in resource usage, such as CPU, memory, or disk space, which could suggest a crypto-mining attack or a resource hijack.
+File Integrity Issues: Changes to system or application files that were not part of an authorized update or maintenance activity.
+Anomalous Application Behavior: Applications performing actions that are outside their normal operations, such as a web server trying to access system files.
+Security Control Failures: Disabling or tampering with security controls, logging mechanisms, or other protective measures.
+Unknown or Unusual Services and Ports Open: Unexpected open ports or services running that are not typically used or are known to be vulnerable.
+Indicators of Compromise (IoCs): Presence of known malicious signatures, hashes, URLs, IP addresses, or domain names that are associated with malware or attacks.
+Escalation of Privileges: Activities indicating that a user or process is attempting to gain higher-level permissions than those assigned.
 
 Overview
 This Confluence page serves as the central repository for all documentation, discussions, and updates related to our project on volatile memory analysis for cloud container nodes. Our aim is to utilize open-source tools such as AVML, dwarf2json, and Volatility 3 to provide an alternative to commercial solutions, enhancing transparency, reducing costs, and increasing flexibility.
