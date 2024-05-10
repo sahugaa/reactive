@@ -8,10 +8,11 @@ Systemizer provides significant value to our developers by enhancing their auton
 
 
 
+Data Training: We begin by training our machine learning model using vast datasets gathered from the GTI ecosystem, along with industry-accepted "back of envelope" numbers. Specifically, we employ Gradient Boosting Machines (GBM) to comprehensively understand and define the intricate relationships within the data.
+Engine Development: Next, we develop an engine on top of the machine learning model. This engine is designed to seamlessly accept user input in JSON format, encapsulating application requirements. Typically, this covers approximately 90% of Non-Functional Requirements (NFR), ensuring a comprehensive understanding of stakeholder needs.
+Recommendation Generation: Leveraging the insights from our trained model, we generate multiple tailored recommendations. These recommendations come complete with trade-offs for informed decision-making. They include architectural YAML files, infrastructure provisioning scripts (EAC YAML), and model load testing scripts, offering a holistic solution for optimal system design and implementation.
 
-Data Analysis and Modeling: Systemizer ingests vast data sets and employs machine learning algorithms, like Gradient Boosting Machines (GBM), to analyze key metrics such as Transactions per Second (TPS), latency, and bandwidth.
-User Input and Preferences: Stakeholders input their specific requirements via a user-friendly JSON interface, indicating performance, scalability, cost, and compliance needs.
-Algorithmic Processing: Leveraging sophisticated algorithms, Systemizer processes this data to generate personalized, data-driven recommendations for infrastructure architectures and resource allocations.
+
 Output Files:
 
 Recommendation File: A detailed document outlining optimal infrastructure setups.
