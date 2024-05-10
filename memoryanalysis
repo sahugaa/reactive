@@ -1,4 +1,8 @@
 
+Software Engineering Advice from Building Large-Scale ...
+
+Google Research
+https://research.google.com › stanford-295-talk
 
 Let's consider a scenario where a team needs to build an efficient ingestion system with an expected NFR and SLA of 99.99% (handling 5 million requests/day, with batching triggered at 3-hour intervals), requiring maximum throughput and high availability. If this system has to be deployed in AWS, how do we determine the number of compute instances needed, as well as the optimal CPU cores, memory, network bandwidth, storage, and disk I/O to support the anticipated workload? Taking a ballpark figure isn't enough; it requires multiple iterations for review. Once deployed, we may find that we've overprovisioned, underprovisioned, or come close to the optimal configuration.We want to bridge the gap by validating against industry-accepted, battle-tested estimated numbers.
 
