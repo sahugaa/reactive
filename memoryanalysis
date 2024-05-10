@@ -1,5 +1,9 @@
 
 
+Let's consider a scenario where a team needs to build an efficient ingestion system with an expected NFR and SLA of 99.99% (handling 5 million requests/day, with batching triggered at 3-hour intervals), requiring maximum throughput and high availability. If this system has to be deployed in AWS, how do we determine the number of compute instances needed, as well as the optimal CPU cores, memory, network bandwidth, storage, and disk I/O to support the anticipated workload? Taking a ballpark figure isn't enough; it requires multiple iterations for review. Once deployed, we may find that we've overprovisioned, underprovisioned, or come close to the optimal configuration.We want to bridge the gap by validating against industry-accepted, battle-tested estimated numbers.
+
+
+
 Malicious Processes: Detection of processes that are known to be malicious or that behave in ways typical of malware, such as hiding their presence or spying on other processes.
 Unusual or Hidden Processes: Identification of processes that are not typically part of the system's operations or that have been deliberately hidden from the operating system to evade detection.
 Network Connections: Analysis of active network connections and sockets that may reveal unauthorized external connections or data exfiltration attempts.
