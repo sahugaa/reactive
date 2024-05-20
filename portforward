@@ -14,6 +14,39 @@ import okhttp3.WebSocketListener;
 import java.io.IOException;
 import java.util.Collections;
 
+
+
+
+
+ public static void main(String[] args) throws Exception {
+        // Load the Kubernetes client configuration from the default location
+        ApiClient client = Config.defaultClient();
+        Configuration.setDefaultApiClient(client);
+
+        // Create a CoreV1Api instance
+        CoreV1Api api = new CoreV1Api(client);
+
+        // Define the namespace and service account name
+        String namespace = "default";
+        String serviceAccountName = "port-forward-sa";
+
+        // Retrieve the service account
+        V1ServiceAccount serviceAccount = api.readNamespacedServiceAccount(serviceAccountName, namespace, null);
+
+        // Get the name of the secret associated with the service account
+        String secretName = serviceAccount.getSecrets().get(0).getName();
+
+        // Retrieve the secret
+        V1Secret secret = api.readNamespacedSecret(secretName, namespace, null);
+
+        // Extract the token from the secret and decode it
+        String encodedToken = secret.getData().get("token");
+        String token = new String(Base64.getDecoder().decode(encodedToken), StandardCharsets.UTF_8);
+
+        // Print the token
+        System.out.println("Service Account Token: " + token);
+
+
 public class KubernetesPortForward {
     public static void main(String[] args) throws Exception {
         // Load the Kubernetes config from the default location
