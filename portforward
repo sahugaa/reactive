@@ -1,0 +1,73 @@
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1PodList;
+import io.kubernetes.client.util.Config;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.WebSocket;
+import okhttp3.WebSocketListener;
+import okhttp3.Response;
+import okhttp3.WebSocketListener;
+
+import java.io.IOException;
+import java.util.Collections;
+
+public class KubernetesPortForward {
+    public static void main(String[] args) throws Exception {
+        // Load the Kubernetes config from the default location
+        ApiClient client = Config.defaultClient();
+        Configuration.setDefaultApiClient(client);
+
+        CoreV1Api api = new CoreV1Api();
+
+        // Define the namespace and the pod name
+        String namespace = "default";
+        String podName = "your-pod-name";  // Replace with your pod name
+        int localPort = 8080;       // Local port to forward to
+        int remotePort = 8080;      // Remote port of the pod
+
+        // Set up port forwarding
+        portForwardPod(client, namespace, podName, localPort, remotePort);
+    }
+
+    public static void portForwardPod(ApiClient client, String namespace, String podName, int localPort, int remotePort) throws IOException {
+        OkHttpClient okHttpClient = client.getHttpClient().newBuilder().build();
+        String url = String.format("%s/api/v1/namespaces/%s/pods/%s/portforward?ports=%d", client.getBasePath(), namespace, podName, remotePort);
+
+        Request request = new Request.Builder()
+            .url(url)
+            .build();
+
+        WebSocketListener listener = new WebSocketListener() {
+            @Override
+            public void onOpen(WebSocket webSocket, Response response) {
+                System.out.println("WebSocket opened");
+            }
+
+            @Override
+            public void onMessage(WebSocket webSocket, String text) {
+                System.out.println("Received message: " + text);
+            }
+
+            @Override
+            public void onClosing(WebSocket webSocket, int code, String reason) {
+                System.out.println("WebSocket closing: " + reason);
+                webSocket.close(1000, null);
+            }
+
+            @Override
+            public void onFailure(WebSocket webSocket, Throwable t, Response response) {
+                t.printStackTrace();
+            }
+        };
+
+        WebSocket webSocket = okHttpClient.newWebSocket(request, listener);
+
+        // Keep the WebSocket open
+        System.in.read();
+        webSocket.close(1000, "Goodbye");
+        okHttpClient.dispatcher().executorService().shutdown();
+    }
+}
