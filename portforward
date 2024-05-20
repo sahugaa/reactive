@@ -31,6 +31,11 @@ public class KubernetesPortForward {
         // Set up port forwarding
         portForwardPod(client, namespace, podName, localPort, remotePort);
 
+
+SECRET_NAME=$(kubectl get sa/port-forward-sa -n default -o jsonpath="{.secrets[0].name}")
+kubectl get secret $SECRET_NAME -n default -o jsonpath="{.data.token}" | base64 --decode
+
+
 kubectl -n default get secret $(kubectl -n default get sa/port-forward-sa -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
 
   // Set the bearer token for the service account
