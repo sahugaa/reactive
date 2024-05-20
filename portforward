@@ -30,6 +30,17 @@ public class KubernetesPortForward {
 
         // Set up port forwarding
         portForwardPod(client, namespace, podName, localPort, remotePort);
+
+kubectl -n default get secret $(kubectl -n default get sa/port-forward-sa -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
+
+  // Set the bearer token for the service account
+        String token = "your-service-account-token";  // Replace with the token you retrieved
+        OkHttpClient okHttpClient = client.getHttpClient().newBuilder()
+            .authenticator((route, response) -> response.request().newBuilder()
+                .header("Authorization", "Bearer " + token)
+                .build())
+            .build();
+
     }
 
     public static void portForwardPod(ApiClient client, String namespace, String podName, int localPort, int remotePort) throws IOException {
