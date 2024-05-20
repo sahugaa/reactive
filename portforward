@@ -16,6 +16,17 @@ import java.util.Collections;
 
 
 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: port-forward-sa-token
+  namespace: default
+  annotations:
+    kubernetes.io/service-account.name: port-forward-sa
+type: kubernetes.io/service-account-token
+
+
+
 
 
  public static void main(String[] args) throws Exception {
