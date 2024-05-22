@@ -1,0 +1,52 @@
+package com.test.test.agent.kube.builder;
+
+import io.kubernetes.client.openapi.models.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class NetworkPolicyBuilder {
+    private String namespace;
+    private String name;
+    private List<V1NetworkPolicyIngressRule> ingressRules = new ArrayList<>();
+    private List<V1NetworkPolicyEgressRule> egressRules = new ArrayList<>();
+    private List<V1LabelSelector> podSelectors = new ArrayList<>();
+
+    public NetworkPolicyBuilder setNamespace(String namespace) {
+        this.namespace = namespace;
+        return this;
+    }
+
+    public NetworkPolicyBuilder setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public NetworkPolicyBuilder addIngressRule(V1NetworkPolicyIngressRule rule) {
+        ingressRules.add(rule);
+        return this;
+    }
+
+    public NetworkPolicyBuilder addEgressRule(V1NetworkPolicyEgressRule rule) {
+        egressRules.add(rule);
+        return this;
+    }
+
+    public NetworkPolicyBuilder addPodSelector(V1LabelSelector selector) {
+        podSelectors.add(selector);
+        return this;
+    }
+
+    public V1NetworkPolicy build() {
+        V1NetworkPolicySpec spec = new V1NetworkPolicySpec()
+                .ingress(ingressRules)
+                .egress(egressRules)
+                .podSelector(new V1LabelSelector().matchLabels(podSelectors));
+
+        return new V1NetworkPolicy()
+                .apiVersion("networking.k8s.io/v1")
+                .kind("NetworkPolicy")
+                .metadata(new V1ObjectMeta().namespace(namespace).name(name))
+                .spec(spec);
+    }
+}
