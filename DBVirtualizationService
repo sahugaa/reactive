@@ -1,0 +1,80 @@
+package com.test.test.agent.service;
+
+import com.test.test.agent.kube.client.ApiClientSingleton;
+import com.test.test.agent.kube.factory.KubeResourceFactory;
+import com.test.test.agent.kube.observer.KubeObserver;
+import com.test.test.agent.kube.strategy.PostgresDeploymentStrategy;
+import com.test.test.agent.kube.util.NetworkPolicyBuilder;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.*;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class DBVirtualizationService {
+    private static final Logger LOGGER = Logger.getLogger(DBVirtualizationService.class.getName());
+    private final AppsV1Api appsV1Api;
+    private final CoreV1Api coreV1Api;
+    private final KubeObserver kubeObserver;
+    private final KubeResourceFactory kubeResourceFactory;
+
+    public DBVirtualizationService() throws IOException {
+        ApiClient client = ApiClientSingleton.getInstance().getClient();
+        this.appsV1Api = new AppsV1Api(client);
+        this.coreV1Api = new CoreV1Api(client);
+        this.kubeObserver = new KubeObserver();
+        this.kubeResourceFactory = new KubeResourceFactory();
+    }
+
+    public void createDB() throws ApiException {
+        LOGGER.info("Started createDB");
+
+        String namespace = "default";
+        V1Deployment deployment = kubeResourceFactory.createDeployment(appsV1Api, namespace, new PostgresDeploymentStrategy());
+        LOGGER.info("Deployment created, watching for readiness...");
+
+        kubeObserver.watchDeployment(appsV1Api, coreV1Api, namespace, deployment.getMetadata().getName());
+        LOGGER.info("Done");
+    }
+
+    public void setNetworkPolicy() {
+        V1NetworkPolicyIngressRule ingressRule = new V1NetworkPolicyIngressRule()
+                .addFromItem(new V1NetworkPolicyPeer().podSelector(new V1LabelSelector().matchLabels(Collections.singletonMap("app", "allowed-app"))))
+                .addPortsItem(new V1NetworkPolicyPort().port(new IntOrString(80)));
+
+        V1NetworkPolicyEgressRule egressRule = new V1NetworkPolicyEgressRule()
+                .addToItem(new V1NetworkPolicyPeer().ipBlock(new V1IPBlock().cidr("192.168.0.0/16").addExceptItem("192.168.1.0/24")))
+                .addPortsItem(new V1NetworkPolicyPort().port(new IntOrString(443)));
+
+        V1LabelSelector podSelector = new V1LabelSelector().matchLabels(Collections.singletonMap("app", "postgres"));
+
+        V1NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
+                .setNamespace("default")
+                .setName("postgres-network-policy")
+                .setIngressRule(ingressRule)
+                .setEgressRule(egressRule)
+                .setPodSelector(podSelector)
+                .build();
+
+        // Use the networkPolicy object as needed
+        LOGGER.info("NetworkPolicy created: " + networkPolicy);
+    }
+
+    public void deleteDB() throws ApiException {
+        LOGGER.info("Started deleteDB");
+
+        String namespace = "default";
+        String deploymentName = "postgres-deployment";
+        String serviceName = "postgres-service";
+
+        kubeResourceFactory.deleteDeployment(appsV1Api, namespace, deploymentName);
+        kubeResourceFactory.deleteService(coreV1Api, namespace, serviceName);
+
+        LOGGER.info("Deployment and service deleted");
+    }
+}
