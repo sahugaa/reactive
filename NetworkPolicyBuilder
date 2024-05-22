@@ -2,15 +2,12 @@ package com.test.test.agent.kube.builder;
 
 import io.kubernetes.client.openapi.models.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class NetworkPolicyBuilder {
     private String namespace;
     private String name;
-    private List<V1NetworkPolicyIngressRule> ingressRules = new ArrayList<>();
-    private List<V1NetworkPolicyEgressRule> egressRules = new ArrayList<>();
-    private List<V1LabelSelector> podSelectors = new ArrayList<>();
+    private V1NetworkPolicyIngressRule ingressRule;
+    private V1NetworkPolicyEgressRule egressRule;
+    private V1LabelSelector podSelector;
 
     public NetworkPolicyBuilder setNamespace(String namespace) {
         this.namespace = namespace;
@@ -22,26 +19,26 @@ public class NetworkPolicyBuilder {
         return this;
     }
 
-    public NetworkPolicyBuilder addIngressRule(V1NetworkPolicyIngressRule rule) {
-        ingressRules.add(rule);
+    public NetworkPolicyBuilder setIngressRule(V1NetworkPolicyIngressRule ingressRule) {
+        this.ingressRule = ingressRule;
         return this;
     }
 
-    public NetworkPolicyBuilder addEgressRule(V1NetworkPolicyEgressRule rule) {
-        egressRules.add(rule);
+    public NetworkPolicyBuilder setEgressRule(V1NetworkPolicyEgressRule egressRule) {
+        this.egressRule = egressRule;
         return this;
     }
 
-    public NetworkPolicyBuilder addPodSelector(V1LabelSelector selector) {
-        podSelectors.add(selector);
+    public NetworkPolicyBuilder setPodSelector(V1LabelSelector podSelector) {
+        this.podSelector = podSelector;
         return this;
     }
 
     public V1NetworkPolicy build() {
         V1NetworkPolicySpec spec = new V1NetworkPolicySpec()
-                .ingress(ingressRules)
-                .egress(egressRules)
-                .podSelector(new V1LabelSelector().matchLabels(podSelectors));
+                .addIngressItem(ingressRule)
+                .addEgressItem(egressRule)
+                .podSelector(podSelector);
 
         return new V1NetworkPolicy()
                 .apiVersion("networking.k8s.io/v1")
