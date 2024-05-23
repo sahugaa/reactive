@@ -1,0 +1,434 @@
+package com.test.test.agent.kube.strategy;
+
+import io.kubernetes.client.openapi.models.V1Deployment;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class DeploymentStrategyTest {
+
+    @Test
+    void testPostgresDeploymentStrategy() {
+        DeploymentStrategy strategy = new PostgresDeploymentStrategy();
+        V1Deployment deployment = strategy.createDeployment("default");
+
+        assertNotNull(deployment);
+        assertEquals("postgres-deployment", deployment.getMetadata().getName());
+        assertEquals(1, deployment.getSpec().getReplicas());
+        assertEquals("postgres", deployment.getSpec().getTemplate().getMetadata().getLabels().get("app"));
+    }
+
+    @Test
+    void testCockroachDeploymentStrategy() {
+        DeploymentStrategy strategy = new CockroachDeploymentStrategy();
+        V1Deployment deployment = strategy.createDeployment("default");
+
+        assertNotNull(deployment);
+        assertEquals("cockroach-deployment", deployment.getMetadata().getName());
+        assertEquals(1, deployment.getSpec().getReplicas());
+        assertEquals("cockroach", deployment.getSpec().getTemplate().getMetadata().getLabels().get("app"));
+    }
+}
+
+
+package com.test.test.agent.kube.factory;
+
+import com.test.test.agent.kube.strategy.CockroachDeploymentStrategy;
+import com.test.test.agent.kube.strategy.DeploymentStrategy;
+import com.test.test.agent.kube.strategy.PostgresDeploymentStrategy;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.openapi.models.V1ServicePort;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+
+class KubeResourceFactoryTest {
+
+    private AppsV1Api appsV1Api;
+    private CoreV1Api coreV1Api;
+    private KubeResourceFactory factory;
+
+    @BeforeEach
+    void setUp() {
+        appsV1Api = Mockito.mock(AppsV1Api.class);
+        coreV1Api = Mockito.mock(CoreV1Api.class);
+        factory = new KubeResourceFactory();
+    }
+
+    @Test
+    void testCreateDeployment() throws Exception {
+        DeploymentStrategy strategy = new PostgresDeploymentStrategy();
+        V1Deployment expectedDeployment = strategy.createDeployment("default");
+        Mockito.when(appsV1Api.createNamespacedDeployment(any(), any(), any(), any(), any())).thenReturn(expectedDeployment);
+
+        V1Deployment deployment = factory.createDeployment(appsV1Api, "default", strategy);
+
+        assertNotNull(deployment);
+        assertEquals("postgres-deployment", deployment.getMetadata().getName());
+    }
+
+    @Test
+    void testCreateService() throws Exception {
+        V1Service expectedService = new V1Service()
+                .apiVersion("v1")
+                .kind("Service")
+                .metadata(new V1ObjectMeta().name("cockroach-service"))
+                .spec(new V1ServiceSpec()
+                        .type("ClusterIP")
+                        .ports(Collections.singletonList(new V1ServicePort().port(26257).targetPort(new IntOrString(26257))))
+                        .selector(Collections.singletonMap("app", "cockroach"))
+                );
+        Mockito.when(coreV1Api.createNamespacedService(any(), any(), any(), any(), any())).thenReturn(expectedService);
+
+        V1Service service = factory.createService(coreV1Api, "default", expectedService);
+
+        assertNotNull(service);
+        assertEquals("cockroach-service", service.getMetadata().getName());
+    }
+
+    @Test
+    void testDeleteDeployment() throws Exception {
+        factory.deleteDeployment(appsV1Api, "default", "postgres-deployment");
+        Mockito.verify(appsV1Api).deleteNamespacedDeployment("postgres-deployment", "default", null, null, null, null, null, null);
+    }
+
+    @Test
+    void testDeleteService() throws Exception {
+        factory.deleteService(coreV1Api, "default", "cockroach-service");
+        Mockito.verify(coreV1Api).deleteNamespacedService("cockroach-service", "default", null, null, null, null, null, null);
+    }
+}
+package com.test.test.agent.kube.observer;
+
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.util.Watch;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.any;
+
+class KubeObserverTest {
+
+    private AppsV1Api appsV1Api;
+    private CoreV1Api coreV1Api;
+    private KubeObserver observer;
+
+    @BeforeEach
+    void setUp() {
+        appsV1Api = Mockito.mock(AppsV1Api.class);
+        coreV1Api = Mockito.mock(CoreV1Api.class);
+        observer = new KubeObserver();
+    }
+
+    @Test
+    void testWatchDeployment() throws Exception {
+        Watch<V1Pod> watch = Mockito.mock(Watch.class);
+        Mockito.when(watch.iterator()).thenReturn(Collections.emptyIterator());
+        Mockito.when(Watch.createWatch(any(), any(), any())).thenReturn(watch);
+
+        observer.watchDeployment(appsV1Api, coreV1Api, "default", "postgres-deployment");
+
+        Mockito.verify(watch).iterator();
+    }
+}
+
+
+package com.test.test.agent.kube.util;
+
+import io.kubernetes.client.openapi.models.*;
+import org.junit.jupiter.api.Test;
+
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class NetworkPolicyBuilderTest {
+
+    @Test
+    void testBuildNetworkPolicy() {
+        V1NetworkPolicyIngressRule ingressRule = new V1NetworkPolicyIngressRule()
+                .addFromItem(new V1NetworkPolicyPeer().podSelector(new V1LabelSelector().matchLabels(Collections.singletonMap("app", "source-app"))))
+                .addPortsItem(new V1NetworkPolicyPort().port(new IntOrString(80)));
+
+        V1NetworkPolicyEgressRule egressRule = new V1NetworkPolicyEgressRule()
+                .addToItem(new V1NetworkPolicyPeer().podSelector(new V1LabelSelector().matchLabels(Collections.singletonMap("app", "destination-app"))))
+                .addPortsItem(new V1NetworkPolicyPort().port(new IntOrString(443)));
+
+        V1LabelSelector podSelector = new V1LabelSelector().matchLabels(Collections.singletonMap("app", "destination-app"));
+
+        V1NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
+                .setNamespace("default")
+                .setName("test-network-policy")
+                .setIngressRule(ingressRule)
+                .setEgressRule(egressRule)
+                .setPodSelector(podSelector)
+                .build();
+
+        assertNotNull(networkPolicy);
+        assertEquals("test-network-policy", networkPolicy.getMetadata().getName());
+        assertEquals("default", networkPolicy.getMetadata().getNamespace());
+        assertEquals(podSelector, networkPolicy.getSpec().getPodSelector());
+        assertEquals(1, networkPolicy.getSpec().getIngress().size());
+        assertEquals(ingressRule, networkPolicy.getSpec().getIngress().get(0));
+        assertEquals(1, networkPolicy.getSpec().getEgress().size());
+        assertEquals(egressRule, networkPolicy.getSpec().getEgress().get(0));
+    }
+}
+
+package com.test.test.agent.kube.factory;
+
+import com.test.test.agent.kube.strategy.CockroachDeploymentStrategy;
+import com.test.test.agent.kube.strategy.DeploymentStrategy;
+import com.test.test.agent.kube.strategy.PostgresDeploymentStrategy;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.openapi.models.V1ServicePort;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+
+class KubeResourceFactoryTest {
+
+    private AppsV1Api appsV1Api;
+    private CoreV1Api coreV1Api;
+    private KubeResourceFactory factory;
+
+    @BeforeEach
+    void setUp() {
+        appsV1Api = Mockito.mock(AppsV1Api.class);
+        coreV1Api = Mockito.mock(CoreV1Api.class);
+        factory = new KubeResourceFactory();
+    }
+
+    @Test
+    void testCreateDeployment() throws Exception {
+        DeploymentStrategy strategy = new PostgresDeploymentStrategy();
+        V1Deployment expectedDeployment = strategy.createDeployment("default");
+        Mockito.when(appsV1Api.createNamespacedDeployment(any(), any(), any(), any(), any())).thenReturn(expectedDeployment);
+
+        V1Deployment deployment = factory.createDeployment(appsV1Api, "default", strategy);
+
+        assertNotNull(deployment);
+        assertEquals("postgres-deployment", deployment.getMetadata().getName());
+    }
+
+    @Test
+    void testCreateService() throws Exception {
+        V1Service expectedService = new V1Service()
+                .apiVersion("v1")
+                .kind("Service")
+                .metadata(new V1ObjectMeta().name("cockroach-service"))
+                .spec(new V1ServiceSpec()
+                        .type("ClusterIP")
+                        .ports(Collections.singletonList(new V1ServicePort().port(26257).targetPort(new IntOrString(26257))))
+                        .selector(Collections.singletonMap("app", "cockroach"))
+                );
+        Mockito.when(coreV1Api.createNamespacedService(any(), any(), any(), any(), any())).thenReturn(expectedService);
+
+        V1Service service = factory.createService(coreV1Api, "default", expectedService);
+
+        assertNotNull(service);
+        assertEquals("cockroach-service", service.getMetadata().getName());
+    }
+
+    @Test
+    void testDeleteDeployment() throws Exception {
+        factory.deleteDeployment(appsV1Api, "default", "postgres-deployment");
+        Mockito.verify(appsV1Api).deleteNamespacedDeployment("postgres-deployment", "default", null, null, null, null, null, null);
+    }
+
+    @Test
+    void testDeleteService() throws Exception {
+        factory.deleteService(coreV1Api, "default", "cockroach-service");
+        Mockito.verify(coreV1Api).deleteNamespacedService("cockroach-service", "default", null, null, null, null, null, null);
+    }
+}
+package com.test.test.agent.service;
+
+import com.test.test.agent.kube.factory.DeploymentStrategyFactory;
+import com.test.test.agent.kube.factory.KubeResourceFactory;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Service;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.io.IOException;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class DBVirtualizationServiceTest {
+
+    private KubeResourceFactory kubeResourceFactory;
+    private DBVirtualizationService dbVirtualizationService;
+    private AppsV1Api appsV1Api;
+    private CoreV1Api coreV1Api;
+
+    @BeforeEach
+    void setUp() throws IOException {
+        kubeResourceFactory = Mockito.mock(KubeResourceFactory.class);
+        appsV1Api = Mockito.mock(AppsV1Api.class);
+        coreV1Api = Mockito.mock(CoreV1Api.class);
+        dbVirtualizationService = new DBVirtualizationService(DeploymentStrategyFactory.StrategyType.COCKROACH);
+    }
+
+    @Test
+    void testCreateDB() throws ApiException {
+        dbVirtualizationService.createDB();
+
+        verify(kubeResourceFactory, times(1)).createDeployment(any(AppsV1Api.class), anyString(), any());
+        verify(kubeResourceFactory, times(1)).createService(any(CoreV1Api.class), anyString(), any());
+    }
+
+    @Test
+    void testDeleteDB() throws ApiException {
+        dbVirtualizationService.deleteDB();
+
+        verify(kubeResourceFactory, times(1)).deleteDeployment(any(AppsV1Api.class), anyString(), anyString());
+        verify(kubeResourceFactory, times(1)).deleteService(any(CoreV1Api.class), anyString(), anyString());
+    }
+
+    @Test
+    void testSetNetworkPolicy() throws ApiException {
+        dbVirtualizationService.setNetworkPolicy("source-app", "cockroach");
+
+        verify(kubeResourceFactory, times(1)).createNetworkPolicy(any(CoreV1Api.class), anyString(), anyString(), anyString(), anyString());
+    }
+}
+package com.test.test.agent.service;
+
+import com.test.test.agent.kube.factory.DeploymentStrategyFactory;
+import com.test.test.agent.kube.factory.KubeResourceFactory;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Service;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.io.IOException;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class DBVirtualizationServiceTest {
+
+    private KubeResourceFactory kubeResourceFactory;
+    private DBVirtualizationService dbVirtualizationService;
+    private AppsV1Api appsV1Api;
+    private CoreV1Api coreV1Api;
+
+    @BeforeEach
+    void setUp() throws IOException {
+        kubeResourceFactory = Mockito.mock(KubeResourceFactory.class);
+        appsV1Api = Mockito.mock(AppsV1Api.class);
+        coreV1Api = Mockito.mock(CoreV1Api.class);
+        dbVirtualizationService = new DBVirtualizationService(DeploymentStrategyFactory.StrategyType.COCKROACH);
+    }
+
+    @Test
+    void testCreateDB() throws ApiException {
+        dbVirtualizationService.createDB();
+
+        verify(kubeResourceFactory, times(1)).createDeployment(any(AppsV1Api.class), anyString(), any());
+        verify(kubeResourceFactory, times(1)).createService(any(CoreV1Api.class), anyString(), any());
+    }
+
+    @Test
+    void testDeleteDB() throws ApiException {
+        dbVirtualizationService.deleteDB();
+
+        verify(kubeResourceFactory, times(1)).deleteDeployment(any(AppsV1Api.class), anyString(), anyString());
+        verify(kubeResourceFactory, times(1)).deleteService(any(CoreV1Api.class), anyString(), anyString());
+    }
+
+    @Test
+    void testSetNetworkPolicy() throws ApiException {
+        dbVirtualizationService.setNetworkPolicy("source-app", "cockroach");
+
+        verify(kubeResourceFactory, times(1)).createNetworkPolicy(any(CoreV1Api.class), anyString(), anyString(), anyString(), anyString());
+    }
+}
+package com.test.test.agent.service;
+
+import com.test.test.agent.kube.factory.DeploymentStrategyFactory;
+import com.test.test.agent.kube.factory.KubeResourceFactory;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Service;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.io.IOException;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class DBVirtualizationServiceTest {
+
+    private KubeResourceFactory kubeResourceFactory;
+    private DBVirtualizationService dbVirtualizationService;
+    private AppsV1Api appsV1Api;
+    private CoreV1Api coreV1Api;
+
+    @BeforeEach
+    void setUp() throws IOException {
+        kubeResourceFactory = Mockito.mock(KubeResourceFactory.class);
+        appsV1Api = Mockito.mock(AppsV1Api.class);
+        coreV1Api = Mockito.mock(CoreV1Api.class);
+        dbVirtualizationService = new DBVirtualizationService(DeploymentStrategyFactory.StrategyType.COCKROACH);
+    }
+
+    @Test
+    void testCreateDB() throws ApiException {
+        dbVirtualizationService.createDB();
+
+        verify(kubeResourceFactory, times(1)).createDeployment(any(AppsV1Api.class), anyString(), any());
+        verify(kubeResourceFactory, times(1)).createService(any(CoreV1Api.class), anyString(), any());
+    }
+
+    @Test
+    void testDeleteDB() throws ApiException {
+        dbVirtualizationService.deleteDB();
+
+        verify(kubeResourceFactory, times(1)).deleteDeployment(any(AppsV1Api.class), anyString(), anyString());
+        verify(kubeResourceFactory, times(1)).deleteService(any(CoreV1Api.class), anyString(), anyString());
+    }
+
+    @Test
+    void testSetNetworkPolicy() throws ApiException {
+        dbVirtualizationService.setNetworkPolicy("source-app", "cockroach");
+
+        verify(kubeResourceFactory, times(1)).createNetworkPolicy(any(CoreV1Api.class), anyString(), anyString(), anyString(), anyString());
+    }
+}
