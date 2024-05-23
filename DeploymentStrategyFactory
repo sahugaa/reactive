@@ -1,0 +1,23 @@
+package com.test.test.agent.kube.factory;
+
+import com.test.test.agent.kube.strategy.DeploymentStrategy;
+import com.test.test.agent.kube.strategy.PostgresDeploymentStrategy;
+import com.test.test.agent.kube.strategy.CockroachDeploymentStrategy;
+
+public class DeploymentStrategyFactory {
+    public enum StrategyType {
+        POSTGRES,
+        COCKROACH
+    }
+
+    public static DeploymentStrategy getStrategy(StrategyType type) {
+        switch (type) {
+            case POSTGRES:
+                return new PostgresDeploymentStrategy();
+            case COCKROACH:
+                return new CockroachDeploymentStrategy();
+            default:
+                throw new IllegalArgumentException("Unknown strategy type: " + type);
+        }
+    }
+}
