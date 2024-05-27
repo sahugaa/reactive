@@ -1,0 +1,46 @@
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1DeploymentList;
+import io.kubernetes.client.util.Config;
+import org.springframework.beans.factory.InitializingBean;
+
+public class MyKubeService implements InitializingBean {
+    private ApiClient client;
+    private AppsV1Api api;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        client = Config.defaultClient();
+        api = new AppsV1Api(client);
+        createOrUpdateDeployment();
+    }
+
+    private void createOrUpdateDeployment() {
+        String namespace = "default";
+        String deploymentName = "my-deployment";
+        V1Deployment deployment = createDeploymentSpec(); // Method to create deployment spec
+
+        try {
+            V1DeploymentList list = api.listNamespacedDeployment(namespace, null, null, null, null, null, null, null, null, null, false);
+            boolean exists = list.getItems().stream().anyMatch(d -> d.getMetadata().getName().equals(deploymentName));
+
+            if (exists) {
+                api.replaceNamespacedDeployment(deploymentName, namespace, deployment, null, null, null);
+                System.out.println("Deployment updated successfully");
+            } else {
+                api.createNamespacedDeployment(namespace, deployment, null, null, null);
+                System.out.println("Deployment created successfully");
+            }
+        } catch (ApiException e) {
+            e.printStackTrace();
+            System.err.println("ApiException: " + e.getResponseBody());
+        }
+    }
+
+    private V1Deployment createDeploymentSpec() {
+        // Create and return the V1Deployment spec
+        return new V1Deployment();
+    }
+}
