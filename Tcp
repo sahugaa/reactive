@@ -1,0 +1,12 @@
+apiVersion: projectcontour.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: postgres-ingress
+  namespace: default
+spec:
+  virtualhost:
+    fqdn: postgres.example.com  # Replace with your actual FQDN
+  routes:
+    - services:
+        - name: postgres
+          port: 5432
