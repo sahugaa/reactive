@@ -27,6 +27,37 @@ import java.util.logging.Logger;
 
 
 
+
+
+<dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>2.14.0</version>
+    </dependency>
+
+    <!-- Jackson Databind -->
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.14.0</version>
+    </dependency>
+
+    <!-- Jackson Annotations -->
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>2.14.0</version>
+    </dependency>
+
+    <!-- Jackson Dataformat YAML -->
+    <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>2.14.0</version>
+    </dependency>
+
+
+
 package com.test.test.service;
 
 import io.fabric8.kubernetes.api.model.Pod;
