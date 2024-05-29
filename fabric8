@@ -25,13 +25,28 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+
+package com.test.test.service;
+
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class KubeObserver {
     private static final Logger LOGGER = Logger.getLogger(KubeObserver.class.getName());
 
     public static void watchDeployment(KubernetesClient client, String namespace, String deploymentName) {
-        Watch watch = null;
+        final Watch[] watchHolder = new Watch[1];
         try {
-            watch = client.pods().inNamespace(namespace).withLabel("app", "postgres").watch(new Watcher<Pod>() {
+            watchHolder[0] = client.pods().inNamespace(namespace).withLabel("app", "postgres").watch(new Watcher<Pod>() {
                 @Override
                 public void eventReceived(Action action, Pod pod) {
                     if (Action.ADDED.equals(action) && pod.getStatus().getConditions().stream().anyMatch(cond -> "Ready".equals(cond.getType()) && "True".equals(cond.getStatus()))) {
@@ -42,8 +57,8 @@ public class KubeObserver {
                         } catch (IOException e) {
                             LOGGER.log(Level.SEVERE, "An error occurred while saving the database credentials to file", e);
                         }
-                        if (watch != null) {
-                            watch.close();
+                        if (watchHolder[0] != null) {
+                            watchHolder[0].close();
                         }
                     }
                 }
@@ -63,13 +78,12 @@ public class KubeObserver {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "An error occurred while watching the deployment", e);
         } finally {
-            if (watch != null) {
-                watch.close();
+            if (watchHolder[0] != null) {
+                watchHolder[0].close();
             }
         }
     }
 }
-
 
 
 
