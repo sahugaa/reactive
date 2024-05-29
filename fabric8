@@ -13,6 +13,69 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+
+
+
+
+
+package com.test.test.service;
+
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.Watcher.Action;
+import io.fabric8.kubernetes.client.WatcherException;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class KubeObserver {
+    private static final Logger LOGGER = Logger.getLogger(KubeObserver.class.getName());
+
+    public static void watchDeployment(KubernetesClient client, String namespace, String deploymentName) {
+        try (Watch watch = client.pods().inNamespace(namespace).withLabel("app", "postgres").watch(new Watcher<Pod>() {
+            @Override
+            public void eventReceived(Action action, Pod pod) {
+                if (Action.ADDED.equals(action) && pod.getStatus().getConditions().stream().anyMatch(cond -> "Ready".equals(cond.getType()) && "True".equals(cond.getStatus()))) {
+                    LOGGER.info("Pod is ready: " + pod.getMetadata().getName());
+                    Service service = KubeResourceFactory.createService(client, namespace, "postgres-service", "postgres", 5432);
+                    try {
+                        FileHelper.saveDatabaseCredentialsToFile(service, namespace);
+                    } catch (IOException e) {
+                        LOGGER.log(Level.SEVERE, "An error occurred while saving the database credentials to file", e);
+                    }
+                    watch.close();
+                }
+            }
+
+            @Override
+            public void onClose(WatcherException cause) {
+                if (cause != null) {
+                    LOGGER.log(Level.SEVERE, "Watcher closed due to error", cause);
+                } else {
+                    LOGGER.info("Watcher closed");
+                }
+            }
+        })) {
+            // Block and wait for the watch to complete
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "An error occurred while watching the deployment", e);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
 interface DeploymentStrategy {
     Deployment createDeployment(String namespace);
 }
