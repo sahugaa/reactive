@@ -1,0 +1,150 @@
+package com.kube.poc;
+
+import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.client.*;
+import io.fabric8.kubernetes.client.dsl.Watchable;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+interface DeploymentStrategy {
+    Deployment createDeployment(String namespace);
+}
+
+class PostgresDeploymentStrategy implements DeploymentStrategy {
+    @Override
+    public Deployment createDeployment(String namespace) {
+        return new DeploymentBuilder()
+                .withApiVersion("apps/v1")
+                .withKind("Deployment")
+                .withNewMetadata().withName("postgres-deployment").endMetadata()
+                .withNewSpec()
+                    .withReplicas(1)
+                    .withNewSelector()
+                        .withMatchLabels(Collections.singletonMap("app", "postgres"))
+                    .endSelector()
+                    .withNewTemplate()
+                        .withNewMetadata()
+                            .withLabels(Collections.singletonMap("app", "postgres"))
+                        .endMetadata()
+                        .withNewSpec()
+                            .addNewContainer()
+                                .withName("postgres")
+                                .withImage("postgres:13")
+                                .addAllToEnv(List.of(
+                                        new EnvVarBuilder().withName("POSTGRES_DB").withValue("mydatabase").build(),
+                                        new EnvVarBuilder().withName("POSTGRES_USER").withValue("user").build(),
+                                        new EnvVarBuilder().withName("POSTGRES_PASSWORD").withValue("password").build()
+                                ))
+                                .addNewPort().withContainerPort(5432).endPort()
+                                .addNewVolumeMount().withName("postgres-storage").withMountPath("/var/lib/postgresql/data").endVolumeMount()
+                            .endContainer()
+                            .addNewVolume()
+                                .withName("postgres-storage")
+                                .withNewPersistentVolumeClaim().withClaimName("postgres-pvc").endPersistentVolumeClaim()
+                            .endVolume()
+                        .endSpec()
+                    .endTemplate()
+                .endSpec()
+                .build();
+    }
+}
+
+class KubeResourceFactory {
+    public static Deployment createDeployment(KubernetesClient client, String namespace, DeploymentStrategy strategy) {
+        return client.apps().deployments().inNamespace(namespace).create(strategy.createDeployment(namespace));
+    }
+
+    public static Service createService(KubernetesClient client, String namespace, String serviceName, String appSelector, int port) {
+        Service service = new ServiceBuilder()
+                .withApiVersion("v1")
+                .withKind("Service")
+                .withNewMetadata().withName(serviceName).endMetadata()
+                .withNewSpec()
+                    .withType("ClusterIP")
+                    .addNewPort().withPort(port).withNewTargetPort().withIntVal(port).endTargetPort().endPort()
+                    .withSelector(Collections.singletonMap("app", appSelector))
+                .endSpec()
+                .build();
+
+        return client.services().inNamespace(namespace).create(service);
+    }
+}
+
+class KubeObserver {
+    private static final Logger LOGGER = Logger.getLogger(KubeObserver.class.getName());
+
+    public static void watchDeployment(KubernetesClient client, String namespace, String deploymentName) {
+        try (Watchable<Pod> watch = client.pods().inNamespace(namespace).withLabel("app", "postgres").watch()) {
+            watch.forEachRemaining(response -> {
+                Pod pod = response.object;
+                if ("ADDED".equals(response.type) && pod.getStatus().getConditions().stream().anyMatch(cond -> "Ready".equals(cond.getType()) && "True".equals(cond.getStatus()))) {
+                    LOGGER.info("Pod is ready: " + pod.getMetadata().getName());
+                    watch.close();
+                }
+            });
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "An error occurred while watching the deployment", e);
+        }
+    }
+}
+
+package com.test.test.agent.kube.builder;
+
+import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.networking.v1.*;
+
+public class NetworkPolicyBuilder {
+    private String namespace;
+    private String name;
+    private NetworkPolicyIngressRule ingressRule;
+    private NetworkPolicyEgressRule egressRule;
+    private LabelSelector podSelector;
+
+    public NetworkPolicyBuilder setNamespace(String namespace) {
+        this.namespace = namespace;
+        return this;
+    }
+
+    public NetworkPolicyBuilder setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public NetworkPolicyBuilder setIngressRule(NetworkPolicyIngressRule ingressRule) {
+        this.ingressRule = ingressRule;
+        return this;
+    }
+
+    public NetworkPolicyBuilder setEgressRule(NetworkPolicyEgressRule egressRule) {
+        this.egressRule = egressRule;
+        return this;
+    }
+
+    public NetworkPolicyBuilder setPodSelector(LabelSelector podSelector) {
+        this.podSelector = podSelector;
+        return this;
+    }
+
+    public NetworkPolicy build() {
+        NetworkPolicySpec spec = new NetworkPolicySpecBuilder()
+                .withIngress(ingressRule)
+                .withEgress(egressRule)
+                .withPodSelector(podSelector)
+                .build();
+
+        return new NetworkPolicyBuilder()
+                .withApiVersion("networking.k8s.io/v1")
+                .withKind("NetworkPolicy")
+                .withNewMetadata().withNamespace(namespace).withName(name).endMetadata()
+                .withSpec(spec)
+                .build();
+    }
+}
+
