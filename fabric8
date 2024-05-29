@@ -95,6 +95,43 @@ class KubeObserver {
     }
 }
 
+
+
+package com.test.test.config;
+
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class KubernetesConfig {
+
+    @Bean
+    public KubernetesClient kubernetesClient() {
+        return new DefaultKubernetesClient();
+    }
+}
+
+
+@Service
+public class KubernetesService {
+
+    private final KubernetesClient kubernetesClient;
+
+    @Autowired
+    public KubernetesService(KubernetesClient kubernetesClient) {
+        this.kubernetesClient = kubernetesClient;
+    }
+
+    public void performSomeOperation() {
+        // Use the kubernetesClient to perform operations
+    }
+}
+
+
+
+
 package com.test.test.agent.kube.builder;
 
 import io.fabric8.kubernetes.api.model.*;
