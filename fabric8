@@ -11,18 +11,30 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class WatchDeploymentAndCreateService {
-    public static void main(String[] args) {
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
-            String namespace = "default";
-            String deploymentName = "example-deployment";
-            String serviceName = "example-service";
 
-            // Define the service
+    private static final String NAMESPACE = "default";
+    private static final String DEPLOYMENT_NAME = "example-deployment";
+    private static final String SERVICE_NAME = "example-service";
+
+    public static void main(String[] args) {
+        WatchDeploymentAndCreateService watchDeployment = new WatchDeploymentAndCreateService();
+        Service createdService = watchDeployment.watchDeploymentAndCreateService();
+        if (createdService != null) {
+            System.out.println("Service created: " + createdService.getMetadata().getName());
+        } else {
+            System.out.println("Failed to create service.");
+        }
+    }
+
+    public Service watchDeploymentAndCreateService() {
+        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
             Service service = new ServiceBuilder()
                 .withNewMetadata()
-                    .withName(serviceName)
+                    .withName(SERVICE_NAME)
                     .addToLabels("app", "example")
                 .endMetadata()
                 .withNewSpec()
@@ -35,17 +47,18 @@ public class WatchDeploymentAndCreateService {
                 .endSpec()
                 .build();
 
-            // Watch the deployment
-            client.apps().deployments().inNamespace(namespace).withName(deploymentName).watch(new ListOptionsBuilder().build(), new Watcher<Deployment>() {
+            CountDownLatch latch = new CountDownLatch(1);
+            final Service[] createdService = new Service[1];
+
+            client.apps().deployments().inNamespace(NAMESPACE).withName(DEPLOYMENT_NAME).watch(new ListOptionsBuilder().build(), new Watcher<Deployment>() {
                 @Override
                 public void eventReceived(Action action, Deployment resource) {
                     if (action == Action.MODIFIED) {
                         if (resource.getStatus().getReplicas().equals(resource.getStatus().getAvailableReplicas())) {
                             // Deployment is ready, create the service
-                            client.services().inNamespace(namespace).createOrReplace(service);
+                            createdService[0] = client.services().inNamespace(NAMESPACE).createOrReplace(service);
                             System.out.println("Service created successfully.");
-                            // Close the watcher after service creation
-                            close();
+                            latch.countDown();
                         }
                     }
                 }
@@ -57,22 +70,16 @@ public class WatchDeploymentAndCreateService {
                     } else {
                         System.out.println("Watcher closed.");
                     }
-                }
-
-                private void close() {
-                    try {
-                        client.close();
-                    } catch (Exception e) {
-                        System.err.println("Error closing Kubernetes client: " + e.getMessage());
-                    }
+                    latch.countDown();
                 }
             });
 
-            // Keep the main thread alive to allow the watcher to do its work
-            Thread.sleep(300000); // 5 minutes
+            latch.await(5, TimeUnit.MINUTES); // Wait for the service to be created or timeout after 5 minutes
+            return createdService[0];
 
         } catch (KubernetesClientException | InterruptedException e) {
             System.err.println("Error: " + e.getMessage());
+            return null;
         }
     }
 }
