@@ -98,6 +98,38 @@ public class WatchDeploymentAndCreateService {
 
 
 
+NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
+                .withNewMetadata()
+                    .withName(networkPolicyName)
+                .endMetadata()
+                .withNewSpec()
+                    .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "example").build())
+                    .addToPolicyTypes("Ingress", "Egress")
+                    .addNewIngress()
+                        .addNewFrom()
+                            .withNewPodSelector()
+                                .addToMatchLabels("app", "source-app")
+                            .endPodSelector()
+                        .endFrom()
+                        .addNewPort()
+                            .withProtocol("TCP")
+                            .withPort(80)
+                        .endPort()
+                    .endIngress()
+                    .addNewEgress()
+                        .addNewTo()
+                            .withNewPodSelector()
+                                .addToMatchLabels("app", "destination-app")
+                            .endPodSelector()
+                        .endTo()
+                        .addNewPort()
+                            .withProtocol("TCP")
+                            .withPort(80)
+                        .endPort()
+                    .endEgress()
+                .endSpec()
+                .build();
+
 network policy
  // Define the Network Policy
             NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
