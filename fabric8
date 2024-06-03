@@ -1,32 +1,16 @@
-     // Delete the deployment
-            Boolean deleted = client.apps().deployments().inNamespace(namespace).withName(deploymentName).delete();
-
-            if (deleted) {
-                System.out.println("Deployment " + deploymentName + " deleted successfully.");
-            } else {
-                System.out.println("Deployment " + deploymentName + " not found or failed to delete.");
-            }
-        } catch (KubernetesClientException e) {
-            System.err.println("Error deleting deployment: " + e.getMessage());
-        }
-
-
-            Boolean serviceDeleted = client.services().inNamespace(namespace).withName(serviceName).delete();
-
-            Boolean deleted = client.network().v1().networkPolicies().inNamespace(namespace).withName(networkPolicyName).delete();
-
-
-
-
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+
+import java.util.Collections;
 
 public class WatchDeploymentAndCreateService {
     public static void main(String[] args) {
@@ -94,75 +78,3 @@ public class WatchDeploymentAndCreateService {
         }
     }
 }
-
-
-
-
-NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
-                .withNewMetadata()
-                    .withName(networkPolicyName)
-                .endMetadata()
-                .withNewSpec()
-                    .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "example").build())
-                    .addToPolicyTypes("Ingress", "Egress")
-                    .addNewIngress()
-                        .addNewFrom()
-                            .withNewPodSelector()
-                                .addToMatchLabels("app", "source-app")
-                            .endPodSelector()
-                        .endFrom()
-                        .addNewPort()
-                            .withProtocol("TCP")
-                            .withPort(80)
-                        .endPort()
-                    .endIngress()
-                    .addNewEgress()
-                        .addNewTo()
-                            .withNewPodSelector()
-                                .addToMatchLabels("app", "destination-app")
-                            .endPodSelector()
-                        .endTo()
-                        .addNewPort()
-                            .withProtocol("TCP")
-                            .withPort(80)
-                        .endPort()
-                    .endEgress()
-                .endSpec()
-                .build();
-
-network policy
- // Define the Network Policy
-            NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
-                .withNewMetadata()
-                    .withName(networkPolicyName)
-                .endMetadata()
-                .withNewSpec()
-                    .addNewIngress()
-                        .addNewFrom()
-                            .withNewPodSelector()
-                                .addToMatchLabels("app", "source-app")
-                            .endPodSelector()
-                        .endFrom()
-                        .addNewPort()
-                            .withProtocol("TCP")
-                            .withPort(80)
-                        .endPort()
-                    .endIngress()
-                    .addNewEgress()
-                        .addNewTo()
-                            .withNewPodSelector()
-                                .addToMatchLabels("app", "destination-app")
-                            .endPodSelector()
-                        .endTo()
-                        .addNewPort()
-                            .withProtocol("TCP")
-                            .withPort(80)
-                        .endPort()
-                    .endEgress()
-                    .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "example").build())
-                    .addToPolicyTypes("Ingress", "Egress")
-                .endSpec()
-                .build();
-
-            // Create the Network Policy
-            client.network().v1().networkPolicies().inNamespace(namespace).createOrReplace(networkPolicy);
