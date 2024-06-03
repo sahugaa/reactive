@@ -1,349 +1,55 @@
-package com.test.test.service;
+     // Delete the deployment
+            Boolean deleted = client.apps().deployments().inNamespace(namespace).withName(deploymentName).delete();
 
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.Watcher.Action;
-import io.fabric8.kubernetes.client.WatcherException;
-
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-package com.test.test.service;
-
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
-
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-
-
-
-
-
-<dependencies>
-    <!-- Fabric8 Kubernetes Client -->
-    <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>kubernetes-client</artifactId>
-        <version>6.8.0</version>
-        <exclusions>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-            </exclusion>
-            <exclusion>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-            </exclusion>
-        </exclusions>
-    </dependency>
-
-    <!-- Jackson Core -->
-    <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>2.14.0</version>
-    </dependency>
-
-    <!-- Jackson Databind -->
-    <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>2.14.0</version>
-    </dependency>
-
-    <!-- Jackson Annotations -->
-    <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>2.14.0</version>
-    </dependency>
-
-    <!-- Jackson Dataformat YAML -->
-    <dependency>
-        <groupId>com.fasterxml.jackson.dataformat</groupId>
-        <artifactId>jackson-dataformat-yaml</artifactId>
-        <version>2.14.0</version>
-    </dependency>
-
-    <!-- SLF4J API for logging -->
-    <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>2.0.7</version>
-    </dependency>
-
-    <!-- SLF4J Simple for basic logging -->
-    <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-simple</artifactId>
-        <version>2.0.7</version>
-    </dependency>
-</dependencies>
-
-
-
-
-
-
-
-
-package com.test.test.service;
-
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
-
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-public class KubeObserver {
-    private static final Logger LOGGER = Logger.getLogger(KubeObserver.class.getName());
-
-    public static void watchDeployment(KubernetesClient client, String namespace, String deploymentName) {
-        final Watch[] watchHolder = new Watch[1];
-        try {
-            watchHolder[0] = client.pods().inNamespace(namespace).withLabel("app", "postgres").watch(new Watcher<Pod>() {
-                @Override
-                public void eventReceived(Action action, Pod pod) {
-                    if (Action.ADDED.equals(action) && pod.getStatus().getConditions().stream().anyMatch(cond -> "Ready".equals(cond.getType()) && "True".equals(cond.getStatus()))) {
-                        LOGGER.info("Pod is ready: " + pod.getMetadata().getName());
-                        Service service = KubeResourceFactory.createService(client, namespace, "postgres-service", "postgres", 5432);
-                        try {
-                            FileHelper.saveDatabaseCredentialsToFile(service, namespace);
-                        } catch (IOException e) {
-                            LOGGER.log(Level.SEVERE, "An error occurred while saving the database credentials to file", e);
-                        }
-                        if (watchHolder[0] != null) {
-                            watchHolder[0].close();
-                        }
-                    }
-                }
-
-                @Override
-                public void onClose(WatcherException cause) {
-                    if (cause != null) {
-                        LOGGER.log(Level.SEVERE, "Watcher closed due to error", cause);
-                    } else {
-                        LOGGER.info("Watcher closed");
-                    }
-                }
-            });
-
-            // Block and wait for the watch to complete, e.g., by adding a wait or loop
-
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "An error occurred while watching the deployment", e);
-        } finally {
-            if (watchHolder[0] != null) {
-                watchHolder[0].close();
+            if (deleted) {
+                System.out.println("Deployment " + deploymentName + " deleted successfully.");
+            } else {
+                System.out.println("Deployment " + deploymentName + " not found or failed to delete.");
             }
+        } catch (KubernetesClientException e) {
+            System.err.println("Error deleting deployment: " + e.getMessage());
         }
-    }
-}
+
+
+            Boolean serviceDeleted = client.services().inNamespace(namespace).withName(serviceName).delete();
+
+            Boolean deleted = client.network().v1().networkPolicies().inNamespace(namespace).withName(networkPolicyName).delete();
 
 
 
-
-
-
-
-
-
-
-
-
-interface DeploymentStrategy {
-    Deployment createDeployment(String namespace);
-}
-
-class PostgresDeploymentStrategy implements DeploymentStrategy {
-    @Override
-    public Deployment createDeployment(String namespace) {
-        return new DeploymentBuilder()
-                .withApiVersion("apps/v1")
-                .withKind("Deployment")
-                .withNewMetadata().withName("postgres-deployment").endMetadata()
+network policy
+ // Define the Network Policy
+            NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
+                .withNewMetadata()
+                    .withName(networkPolicyName)
+                .endMetadata()
                 .withNewSpec()
-                    .withReplicas(1)
-                    .withNewSelector()
-                        .withMatchLabels(Collections.singletonMap("app", "postgres"))
-                    .endSelector()
-                    .withNewTemplate()
-                        .withNewMetadata()
-                            .withLabels(Collections.singletonMap("app", "postgres"))
-                        .endMetadata()
-                        .withNewSpec()
-                            .addNewContainer()
-                                .withName("postgres")
-                                .withImage("postgres:13")
-                                .addAllToEnv(List.of(
-                                        new EnvVarBuilder().withName("POSTGRES_DB").withValue("mydatabase").build(),
-                                        new EnvVarBuilder().withName("POSTGRES_USER").withValue("user").build(),
-                                        new EnvVarBuilder().withName("POSTGRES_PASSWORD").withValue("password").build()
-                                ))
-                                .addNewPort().withContainerPort(5432).endPort()
-                                .addNewVolumeMount().withName("postgres-storage").withMountPath("/var/lib/postgresql/data").endVolumeMount()
-                            .endContainer()
-                            .addNewVolume()
-                                .withName("postgres-storage")
-                                .withNewPersistentVolumeClaim().withClaimName("postgres-pvc").endPersistentVolumeClaim()
-                            .endVolume()
-                        .endSpec()
-                    .endTemplate()
-                .endSpec()
-                .build();
-    }
-}
-
-class KubeResourceFactory {
-    public static Deployment createDeployment(KubernetesClient client, String namespace, DeploymentStrategy strategy) {
-        return client.apps().deployments().inNamespace(namespace).create(strategy.createDeployment(namespace));
-    }
-
-    public static Service createService(KubernetesClient client, String namespace, String serviceName, String appSelector, int port) {
-        Service service = new ServiceBuilder()
-                .withApiVersion("v1")
-                .withKind("Service")
-                .withNewMetadata().withName(serviceName).endMetadata()
-                .withNewSpec()
-                    .withType("ClusterIP")
-                    .addNewPort().withPort(port).withNewTargetPort().withIntVal(port).endTargetPort().endPort()
-                    .withSelector(Collections.singletonMap("app", appSelector))
+                    .addNewIngress()
+                        .addNewFrom()
+                            .withNewPodSelector()
+                                .addToMatchLabels("app", "source-app")
+                            .endPodSelector()
+                        .endFrom()
+                        .addNewPort()
+                            .withProtocol("TCP")
+                            .withPort(80)
+                        .endPort()
+                    .endIngress()
+                    .addNewEgress()
+                        .addNewTo()
+                            .withNewPodSelector()
+                                .addToMatchLabels("app", "destination-app")
+                            .endPodSelector()
+                        .endTo()
+                        .addNewPort()
+                            .withProtocol("TCP")
+                            .withPort(80)
+                        .endPort()
+                    .endEgress()
+                    .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "example").build())
+                    .addToPolicyTypes("Ingress", "Egress")
                 .endSpec()
                 .build();
 
-        return client.services().inNamespace(namespace).create(service);
-    }
-}
-
-class KubeObserver {
-    private static final Logger LOGGER = Logger.getLogger(KubeObserver.class.getName());
-
-    public static void watchDeployment(KubernetesClient client, String namespace, String deploymentName) {
-        try (Watchable<Pod> watch = client.pods().inNamespace(namespace).withLabel("app", "postgres").watch()) {
-            watch.forEachRemaining(response -> {
-                Pod pod = response.object;
-                if ("ADDED".equals(response.type) && pod.getStatus().getConditions().stream().anyMatch(cond -> "Ready".equals(cond.getType()) && "True".equals(cond.getStatus()))) {
-                    LOGGER.info("Pod is ready: " + pod.getMetadata().getName());
-                    watch.close();
-                }
-            });
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "An error occurred while watching the deployment", e);
-        }
-    }
-}
-
-
-
-package com.test.test.config;
-
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-public class KubernetesConfig {
-
-    @Bean
-    public KubernetesClient kubernetesClient() {
-        return new DefaultKubernetesClient();
-    }
-}
-
-
-@Service
-public class KubernetesService {
-
-    private final KubernetesClient kubernetesClient;
-
-    @Autowired
-    public KubernetesService(KubernetesClient kubernetesClient) {
-        this.kubernetesClient = kubernetesClient;
-    }
-
-    public void performSomeOperation() {
-        // Use the kubernetesClient to perform operations
-    }
-}
-
-
-
-
-package com.test.test.agent.kube.builder;
-
-import io.fabric8.kubernetes.api.model.*;
-import io.fabric8.kubernetes.api.model.networking.v1.*;
-
-public class NetworkPolicyBuilder {
-    private String namespace;
-    private String name;
-    private NetworkPolicyIngressRule ingressRule;
-    private NetworkPolicyEgressRule egressRule;
-    private LabelSelector podSelector;
-
-    public NetworkPolicyBuilder setNamespace(String namespace) {
-        this.namespace = namespace;
-        return this;
-    }
-
-    public NetworkPolicyBuilder setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public NetworkPolicyBuilder setIngressRule(NetworkPolicyIngressRule ingressRule) {
-        this.ingressRule = ingressRule;
-        return this;
-    }
-
-    public NetworkPolicyBuilder setEgressRule(NetworkPolicyEgressRule egressRule) {
-        this.egressRule = egressRule;
-        return this;
-    }
-
-    public NetworkPolicyBuilder setPodSelector(LabelSelector podSelector) {
-        this.podSelector = podSelector;
-        return this;
-    }
-
-    public NetworkPolicy build() {
-        NetworkPolicySpec spec = new NetworkPolicySpecBuilder()
-                .withIngress(ingressRule)
-                .withEgress(egressRule)
-                .withPodSelector(podSelector)
-                .build();
-
-        return new NetworkPolicyBuilder()
-                .withApiVersion("networking.k8s.io/v1")
-                .withKind("NetworkPolicy")
-                .withNewMetadata().withNamespace(namespace).withName(name).endMetadata()
-                .withSpec(spec)
-                .build();
-    }
-}
-
+            // Create the Network Policy
+            client.network().v1().networkPolicies().inNamespace(namespace).createOrReplace(networkPolicy);
