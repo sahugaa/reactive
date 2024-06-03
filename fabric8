@@ -1,13 +1,13 @@
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentList;
+import io.fabric8.kubernetes.api.model.ListOptionsBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.Watcher.Action;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 
 import java.util.Collections;
@@ -36,8 +36,7 @@ public class WatchDeploymentAndCreateService {
                 .build();
 
             // Watch the deployment
-            FilterWatchListDeletable<Deployment, DeploymentList, Boolean, Watcher<Deployment>> watch = 
-                client.apps().deployments().inNamespace(namespace).withName(deploymentName).watch(new Watcher<Deployment>() {
+            client.apps().deployments().inNamespace(namespace).withName(deploymentName).watch(new ListOptionsBuilder().build(), new Watcher<Deployment>() {
                 @Override
                 public void eventReceived(Action action, Deployment resource) {
                     if (action == Action.MODIFIED) {
@@ -71,7 +70,6 @@ public class WatchDeploymentAndCreateService {
 
             // Keep the main thread alive to allow the watcher to do its work
             Thread.sleep(300000); // 5 minutes
-            watch.close();
 
         } catch (KubernetesClientException | InterruptedException e) {
             System.err.println("Error: " + e.getMessage());
