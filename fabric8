@@ -17,6 +17,87 @@
 
 
 
+
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.Watcher.Action;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+
+public class WatchDeploymentAndCreateService {
+    public static void main(String[] args) {
+        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+            String namespace = "default";
+            String deploymentName = "example-deployment";
+            String serviceName = "example-service";
+
+            // Define the service
+            Service service = new ServiceBuilder()
+                .withNewMetadata()
+                    .withName(serviceName)
+                    .addToLabels("app", "example")
+                .endMetadata()
+                .withNewSpec()
+                    .withSelector(Collections.singletonMap("app", "example"))
+                    .addNewPort()
+                        .withProtocol("TCP")
+                        .withPort(80)
+                        .withTargetPort(new IntOrString(80))
+                    .endPort()
+                .endSpec()
+                .build();
+
+            // Watch the deployment
+            FilterWatchListDeletable<Deployment, DeploymentList, Boolean, Watcher<Deployment>> watch = 
+                client.apps().deployments().inNamespace(namespace).withName(deploymentName).watch(new Watcher<Deployment>() {
+                @Override
+                public void eventReceived(Action action, Deployment resource) {
+                    if (action == Action.MODIFIED) {
+                        if (resource.getStatus().getReplicas().equals(resource.getStatus().getAvailableReplicas())) {
+                            // Deployment is ready, create the service
+                            client.services().inNamespace(namespace).createOrReplace(service);
+                            System.out.println("Service created successfully.");
+                            // Close the watcher after service creation
+                            close();
+                        }
+                    }
+                }
+
+                @Override
+                public void onClose(KubernetesClientException cause) {
+                    if (cause != null) {
+                        System.err.println("Watcher closed due to an error: " + cause.getMessage());
+                    } else {
+                        System.out.println("Watcher closed.");
+                    }
+                }
+
+                private void close() {
+                    try {
+                        client.close();
+                    } catch (Exception e) {
+                        System.err.println("Error closing Kubernetes client: " + e.getMessage());
+                    }
+                }
+            });
+
+            // Keep the main thread alive to allow the watcher to do its work
+            Thread.sleep(300000); // 5 minutes
+            watch.close();
+
+        } catch (KubernetesClientException | InterruptedException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+}
+
+
+
+
 network policy
  // Define the Network Policy
             NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
