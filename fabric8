@@ -1,85 +1,50 @@
-import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentList;
-import io.fabric8.kubernetes.api.model.ListOptionsBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicySpecBuilder;
+import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 
-import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-public class WatchDeploymentAndCreateService {
-
-    private static final String NAMESPACE = "default";
-    private static final String DEPLOYMENT_NAME = "example-deployment";
-    private static final String SERVICE_NAME = "example-service";
-
+public class CreateNetworkPolicy {
     public static void main(String[] args) {
-        WatchDeploymentAndCreateService watchDeployment = new WatchDeploymentAndCreateService();
-        Service createdService = watchDeployment.watchDeploymentAndCreateService();
-        if (createdService != null) {
-            System.out.println("Service created: " + createdService.getMetadata().getName());
-        } else {
-            System.out.println("Failed to create service.");
-        }
-    }
-
-    public Service watchDeploymentAndCreateService() {
         try (KubernetesClient client = new KubernetesClientBuilder().build()) {
-            Service service = new ServiceBuilder()
-                .withNewMetadata()
-                    .withName(SERVICE_NAME)
-                    .addToLabels("app", "example")
-                .endMetadata()
-                .withNewSpec()
-                    .withSelector(Collections.singletonMap("app", "example"))
-                    .addNewPort()
-                        .withProtocol("TCP")
-                        .withPort(80)
-                        .withTargetPort(new IntOrString(80))
-                    .endPort()
-                .endSpec()
+            String namespace = "default";
+            String networkPolicyName = "example-network-policy";
+
+            // Define the Network Policy
+            NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
+                .withMetadata(new ObjectMetaBuilder().withName(networkPolicyName).build())
+                .withSpec(new NetworkPolicySpecBuilder()
+                    .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "example").build())
+                    .addToPolicyTypes("Ingress", "Egress")
+                    .addNewIngress()
+                        .addNewFrom()
+                            .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "source-app").build())
+                        .endFrom()
+                        .addNewPort()
+                            .withProtocol("TCP")
+                            .withPort(80)
+                        .endPort()
+                    .endIngress()
+                    .addNewEgress()
+                        .addNewTo()
+                            .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "destination-app").build())
+                        .endTo()
+                        .addNewPort()
+                            .withProtocol("TCP")
+                            .withPort(80)
+                        .endPort()
+                    .endEgress()
+                    .build())
                 .build();
 
-            CountDownLatch latch = new CountDownLatch(1);
-            final Service[] createdService = new Service[1];
-
-            client.apps().deployments().inNamespace(NAMESPACE).withName(DEPLOYMENT_NAME).watch(new ListOptionsBuilder().build(), new Watcher<Deployment>() {
-                @Override
-                public void eventReceived(Action action, Deployment resource) {
-                    if (action == Action.MODIFIED) {
-                        if (resource.getStatus().getReplicas().equals(resource.getStatus().getAvailableReplicas())) {
-                            // Deployment is ready, create the service
-                            createdService[0] = client.services().inNamespace(NAMESPACE).createOrReplace(service);
-                            System.out.println("Service created successfully.");
-                            latch.countDown();
-                        }
-                    }
-                }
-
-                @Override
-                public void onClose(KubernetesClientException cause) {
-                    if (cause != null) {
-                        System.err.println("Watcher closed due to an error: " + cause.getMessage());
-                    } else {
-                        System.out.println("Watcher closed.");
-                    }
-                    latch.countDown();
-                }
-            });
-
-            latch.await(5, TimeUnit.MINUTES); // Wait for the service to be created or timeout after 5 minutes
-            return createdService[0];
-
-        } catch (KubernetesClientException | InterruptedException e) {
-            System.err.println("Error: " + e.getMessage());
-            return null;
+            // Create the Network Policy
+            client.network().v1().networkPolicies().inNamespace(namespace).createOrReplace(networkPolicy);
+            System.out.println("Network Policy created successfully.");
+        } catch (KubernetesClientException e) {
+            System.err.println("Error creating Network Policy: " + e.getMessage());
         }
     }
 }
