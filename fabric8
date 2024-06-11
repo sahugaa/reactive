@@ -1,13 +1,12 @@
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
-import io.fabric8.kubernetes.client.dsl.Watch;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +27,7 @@ public class KubernetesUtilTest {
     private KubernetesClient client;
 
     @Mock
-    private MixedOperation<Service, ?, ?, ServiceResource<Service>> serviceOperation;
+    private MixedOperation<Service, io.fabric8.kubernetes.api.model.ServiceList, ServiceResource<Service>, ?> serviceOperation;
 
     @Mock
     private ServiceResource<Service> serviceResource;
@@ -40,6 +39,9 @@ public class KubernetesUtilTest {
     private KubernetesUtil kubernetesUtil;
 
     @Captor
+    private ArgumentCaptor<Watcher<Service>> watcherCaptor;
+
+    @Captor
     private ArgumentCaptor<Service> serviceCaptor;
 
     @BeforeEach
@@ -48,6 +50,7 @@ public class KubernetesUtilTest {
         when(client.services()).thenReturn(serviceOperation);
         when(serviceOperation.inNamespace(anyString())).thenReturn(serviceOperation);
         when(serviceOperation.create(any(Service.class))).thenReturn(new Service());
+        when(serviceOperation.watch(any())).thenReturn(watch);
     }
 
     @Test
@@ -71,10 +74,11 @@ public class KubernetesUtilTest {
 
     @Test
     public void testWatchServices() {
-        when(serviceOperation.watch(any())).thenReturn(watch);
-
         kubernetesUtil.watchServices("default");
 
-        verify(serviceOperation).watch(any());
+        verify(serviceOperation).watch(watcherCaptor.capture());
+        Watcher<Service> capturedWatcher = watcherCaptor.getValue();
+
+        assertNotNull(capturedWatcher);
     }
 }
