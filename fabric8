@@ -1,50 +1,80 @@
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
-import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicySpecBuilder;
-import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.ServiceResource;
+import io.fabric8.kubernetes.client.dsl.Watch;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
-public class CreateNetworkPolicy {
-    public static void main(String[] args) {
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
-            String namespace = "default";
-            String networkPolicyName = "example-network-policy";
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-            // Define the Network Policy
-            NetworkPolicy networkPolicy = new NetworkPolicyBuilder()
-                .withMetadata(new ObjectMetaBuilder().withName(networkPolicyName).build())
-                .withSpec(new NetworkPolicySpecBuilder()
-                    .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "example").build())
-                    .addToPolicyTypes("Ingress", "Egress")
-                    .addNewIngress()
-                        .addNewFrom()
-                            .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "source-app").build())
-                        .endFrom()
-                        .addNewPort()
-                            .withProtocol("TCP")
-                            .withPort(80)
-                        .endPort()
-                    .endIngress()
-                    .addNewEgress()
-                        .addNewTo()
-                            .withPodSelector(new LabelSelectorBuilder().addToMatchLabels("app", "destination-app").build())
-                        .endTo()
-                        .addNewPort()
-                            .withProtocol("TCP")
-                            .withPort(80)
-                        .endPort()
-                    .endEgress()
-                    .build())
-                .build();
+@ExtendWith(MockitoExtension.class)
+public class KubernetesUtilTest {
 
-            // Create the Network Policy
-            client.network().v1().networkPolicies().inNamespace(namespace).createOrReplace(networkPolicy);
-            System.out.println("Network Policy created successfully.");
-        } catch (KubernetesClientException e) {
-            System.err.println("Error creating Network Policy: " + e.getMessage());
-        }
+    @Mock
+    private KubernetesClient client;
+
+    @Mock
+    private MixedOperation<Service, ?, ?, ServiceResource<Service>> serviceOperation;
+
+    @Mock
+    private ServiceResource<Service> serviceResource;
+
+    @Mock
+    private Watch watch;
+
+    @InjectMocks
+    private KubernetesUtil kubernetesUtil;
+
+    @Captor
+    private ArgumentCaptor<Service> serviceCaptor;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        when(client.services()).thenReturn(serviceOperation);
+        when(serviceOperation.inNamespace(anyString())).thenReturn(serviceOperation);
+        when(serviceOperation.create(any(Service.class))).thenReturn(new Service());
+    }
+
+    @Test
+    public void testCreateService() {
+        String name = "test-service";
+        String namespace = "default";
+        int port = 80;
+        int targetPort = 8080;
+
+        Service service = kubernetesUtil.createService(name, namespace, port, targetPort);
+
+        verify(serviceOperation).create(serviceCaptor.capture());
+        Service capturedService = serviceCaptor.getValue();
+
+        assertNotNull(capturedService);
+        assertEquals(name, capturedService.getMetadata().getName());
+        assertEquals(namespace, capturedService.getMetadata().getNamespace());
+        assertEquals(port, capturedService.getSpec().getPorts().get(0).getPort());
+        assertEquals(targetPort, capturedService.getSpec().getPorts().get(0).getTargetPort().getIntVal());
+    }
+
+    @Test
+    public void testWatchServices() {
+        when(serviceOperation.watch(any())).thenReturn(watch);
+
+        kubernetesUtil.watchServices("default");
+
+        verify(serviceOperation).watch(any());
     }
 }
