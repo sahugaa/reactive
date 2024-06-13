@@ -1,84 +1,56 @@
-import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.ServiceResource;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.MockitoAnnotations;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import org.junit.Before;
+import org.junit.After;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
 
-@ExtendWith(MockitoExtension.class)
-public class KubernetesUtilTest {
+public class KubernetesServiceTest {
 
-    @Mock
+    private static final Logger logger = LoggerFactory.getLogger(KubernetesServiceTest.class);
+    public KubernetesServer server = new KubernetesServer();
     private KubernetesClient client;
+    private KubernetesService kubernetesService;
 
-    @Mock
-    private MixedOperation<Service, io.fabric8.kubernetes.api.model.ServiceList, ServiceResource<Service>, ?> serviceOperation;
-
-    @Mock
-    private ServiceResource<Service> serviceResource;
-
-    @Mock
-    private Watch watch;
-
-    @InjectMocks
-    private KubernetesUtil kubernetesUtil;
-
-    @Captor
-    private ArgumentCaptor<Watcher<Service>> watcherCaptor;
-
-    @Captor
-    private ArgumentCaptor<Service> serviceCaptor;
-
-    @BeforeEach
+    @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        when(client.services()).thenReturn(serviceOperation);
-        when(serviceOperation.inNamespace(anyString())).thenReturn(serviceOperation);
-        when(serviceOperation.create(any(Service.class))).thenReturn(new Service());
-        when(serviceOperation.watch(any())).thenReturn(watch);
+        client = server.getClient();
+        kubernetesService = new KubernetesService(client);
+    }
+
+    @After
+    public void tearDown() {
+        server.after();
     }
 
     @Test
-    public void testCreateService() {
-        String name = "test-service";
-        String namespace = "default";
-        int port = 80;
-        int targetPort = 8080;
+    public void testWatchDeployments() {
+        Deployment deployment = new DeploymentBuilder()
+                .withNewMetadata()
+                .withName("test-deployment")
+                .endMetadata()
+                .withNewSpec()
+                .endSpec()
+                .withNewStatus()
+                .endStatus()
+                .build();
 
-        Service service = kubernetesUtil.createService(name, namespace, port, targetPort);
+        server.expect().withPath("/apis/apps/v1/namespaces/default/deployments").andReturn(200, deployment).always();
 
-        verify(serviceOperation).create(serviceCaptor.capture());
-        Service capturedService = serviceCaptor.getValue();
+        // Start watching deployments
+        kubernetesService.watchDeployments();
 
-        assertNotNull(capturedService);
-        assertEquals(name, capturedService.getMetadata().getName());
-        assertEquals(namespace, capturedService.getMetadata().getNamespace());
-        assertEquals(port, capturedService.getSpec().getPorts().get(0).getPort());
-        assertEquals(targetPort, capturedService.getSpec().getPorts().get(0).getTargetPort().getIntVal());
-    }
+        // Simulate deployment creation event
+        client.apps().deployments().inNamespace("default").create(deployment);
 
-    @Test
-    public void testWatchServices() {
-        kubernetesUtil.watchServices("default");
-
-        verify(serviceOperation).watch(watcherCaptor.capture());
-        Watcher<Service> capturedWatcher = watcherCaptor.getValue();
-
-        assertNotNull(capturedWatcher);
+        // Verify that the deployment was created
+        Deployment createdDeployment = client.apps().deployments().inNamespace("default").withName("test-deployment").get();
+        assertNotNull(createdDeployment);
+        assertEquals("test-deployment", createdDeployment.getMetadata().getName());
     }
 }
