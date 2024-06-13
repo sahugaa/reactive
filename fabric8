@@ -1,56 +1,70 @@
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static org.junit.Assert.*;
-
-public class KubernetesServiceTest {
-
-    private static final Logger logger = LoggerFactory.getLogger(KubernetesServiceTest.class);
-    public KubernetesServer server = new KubernetesServer();
-    private KubernetesClient client;
-    private KubernetesService kubernetesService;
-
-    @Before
-    public void setUp() {
-        client = server.getClient();
-        kubernetesService = new KubernetesService(client);
-    }
-
-    @After
-    public void tearDown() {
-        server.after();
-    }
-
-    @Test
-    public void testWatchDeployments() {
-        Deployment deployment = new DeploymentBuilder()
-                .withNewMetadata()
-                .withName("test-deployment")
-                .endMetadata()
-                .withNewSpec()
-                .endSpec()
-                .withNewStatus()
-                .endStatus()
-                .build();
-
-        server.expect().withPath("/apis/apps/v1/namespaces/default/deployments").andReturn(200, deployment).always();
-
-        // Start watching deployments
-        kubernetesService.watchDeployments();
-
-        // Simulate deployment creation event
-        client.apps().deployments().inNamespace("default").create(deployment);
-
-        // Verify that the deployment was created
-        Deployment createdDeployment = client.apps().deployments().inNamespace("default").withName("test-deployment").get();
-        assertNotNull(createdDeployment);
-        assertEquals("test-deployment", createdDeployment.getMetadata().getName());
-    }
-}
+ <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.8</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.8</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
