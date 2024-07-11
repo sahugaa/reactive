@@ -1,94 +1,48 @@
-import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
-import io.kubernetes.client.util.Config;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.WebSocket;
-import okhttp3.WebSocketListener;
-import okhttp3.Response;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.internal.PortForwarderWebsocket;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
-public class KubernetesPortForward {
-    public static void main(String[] args) throws Exception {
-        // Extract the token from the kubeconfig file
-        String token = getTokenFromKubeconfig();
-        
-        // Load the Kubernetes client configuration
-        ApiClient client = Config.defaultClient();
-        Configuration.setDefaultApiClient(client);
-
-        // Set up the OkHttpClient with the token
-        OkHttpClient okHttpClient = client.getHttpClient().newBuilder()
-            .authenticator((route, response) -> response.request().newBuilder()
-                .header("Authorization", "Bearer " + token)
-                .build())
-            .build();
-
-        // Define the namespace, pod name, and ports
+public class PortForwardExample {
+    public static void main(String[] args) {
         String namespace = "default";
-        String podName = "your-pod-name";  // Replace with your pod name
-        int localPort = 8080;
-        int remotePort = 8080;
-        String url = String.format("%s/api/v1/namespaces/%s/pods/%s/portforward?ports=%d", client.getBasePath(), namespace, podName, remotePort);
+        String serviceName = "my-service";
+        int servicePort = 9090;
+        int localPort = 9090;
 
-        // Create a WebSocket request
-        Request request = new Request.Builder()
-            .url(url)
-            .build();
-
-        // Implement a WebSocket listener
-        WebSocketListener listener = new WebSocketListener() {
-            @Override
-            public void onOpen(WebSocket webSocket, Response response) {
-                System.out.println("WebSocket opened");
+        try (KubernetesClient client = new DefaultKubernetesClient()) {
+            // Get the service
+            Service service = client.services().inNamespace(namespace).withName(serviceName).get();
+            if (service == null) {
+                System.out.println("Service not found!");
+                return;
             }
 
-            @Override
-            public void onMessage(WebSocket webSocket, String text) {
-                System.out.println("Received message: " + text);
+            // Get the first pod associated with the service
+            Pod pod = client.pods().inNamespace(namespace).withLabels(service.getSpec().getSelector()).list().getItems().get(0);
+            if (pod == null) {
+                System.out.println("No pods found for the service!");
+                return;
             }
 
-            @Override
-            public void onClosing(WebSocket webSocket, int code, String reason) {
-                System.out.println("WebSocket closing: " + reason);
-                webSocket.close(1000, null);
+            // Port forward from local port to pod port
+            PodResource<Pod> podResource = client.pods().inNamespace(namespace).withName(pod.getMetadata().getName());
+            try (PortForwarderWebsocket portForwarder = new PortForwarderWebsocket(client.getConfiguration())) {
+                portForwarder.forward(podResource, servicePort, new InetSocketAddress("localhost", localPort));
+
+                // Keeping the port forwarding open until user stops the program
+                System.out.println("Port forwarding from localhost:" + localPort + " to " + pod.getMetadata().getName() + ":" + servicePort);
+                System.out.println("Press Ctrl+C to stop...");
+                Thread.currentThread().join();
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
             }
-
-            @Override
-            public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-                t.printStackTrace();
-            }
-        };
-
-        // Establish the WebSocket connection
-        WebSocket webSocket = okHttpClient.newWebSocket(request, listener);
-
-        // Keep the WebSocket connection open
-        System.in.read();
-        webSocket.close(1000, "Goodbye");
-        okHttpClient.dispatcher().executorService().shutdown();
-    }
-
-    private static String getTokenFromKubeconfig() throws IOException {
-        // Load the Kubernetes client configuration from the default location
-        ApiClient client = Config.defaultClient();
-        Configuration.setDefaultApiClient(client);
-
-        // Extract the token from the kubeconfig file
-        String token = client.getAuthentication().getCredentials().getPassword();
-        
-        // If the token is null, fallback to extracting it manually
-        if (token == null) {
-            String kubeconfig = System.getenv("KUBECONFIG");
-            if (kubeconfig == null) {
-                kubeconfig = System.getProperty("user.home") + "/.kube/config";
-            }
-            // Use a YAML parser to extract the token from the kubeconfig file
-            // Example: Use SnakeYAML or another library to parse the YAML
-            // You would add your parsing logic here if needed
         }
-
-        return token;
     }
 }
