@@ -16,6 +16,9 @@ public class PortForwardExample {
         int servicePort = 9090;
         int localPort = 9090;
 
+            URL podUrl = new URL(client.getConfiguration().getMasterUrl() + "api/v1/namespaces/" + namespace + "/pods/" + pod.getMetadata().getName() + "/portforward?ports=" + POD_PORT);
+
+
         try (KubernetesClient client = new DefaultKubernetesClient()) {
             // Get the service
             Service service = client.services().inNamespace(namespace).withName(serviceName).get();
